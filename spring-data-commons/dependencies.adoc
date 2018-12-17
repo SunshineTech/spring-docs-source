@@ -1,0 +1,59 @@
+[[dependencies]]
+= 依赖
+
+由于各个Spring Data模块的启动日期不同，因此大多数模块都带有不同的主要版本号和次要版本号。找到兼容版本的最简单方法是依靠我们随带的定义的兼容版本提供的Spring Data Release Train BOM。
+在Maven项目中，您将在POM的 `<dependencyManagement />` 部分声明此依赖：
+
+.使用Spring Data release train BOM
+====
+[source, xml]
+----
+<dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.data</groupId>
+      <artifactId>spring-data-releasetrain</artifactId>
+      <version>${release-train}</version>
+      <scope>import</scope>
+      <type>pom</type>
+    </dependency>
+  </dependencies>
+</dependencyManagement>
+----
+====
+
+[[dependencies.train-names]]
+当前版本系列版本是 `{releasetrainVersion}`。系列名称按字母顺序升序，当前可用系列名称列在 https://github.com/spring-projects/spring-data-commons/wiki/Release-planning[此处]。
+版本名称遵循以下模式：`${name}-${release}`，其中release可以是以下之一：
+
+* `BUILD-SNAPSHOT` - 当前快照
+* `M1`、`M2` 等 - 里程碑
+* `RC1`、`RC2` 等 - release candidates
+* `RELEASE` - GA版
+* `SR1`、`SR2` 等 - 服务版
+
+可以在我们的 https://github.com/spring-projects/spring-data-examples/tree/master/bom[Spring Data示例存储库]中找到使用BOM的工作示例。如果是这样的话，那么在 `<dependencies />` 块中不带版本声明要使用的Spring Data模块。
+
+.声明对Spring Data模块的依赖
+====
+[source, xml]
+----
+<dependencies>
+  <dependency>
+    <groupId>org.springframework.data</groupId>
+    <artifactId>spring-data-jpa</artifactId>
+  </dependency>
+<dependencies>
+----
+====
+
+[[dependencies.spring-boot]]
+== Spring Boot的依赖管理
+
+Spring Boot已经为您选择了Spring Data模块的最新版本。如果您想要升级到更新版本，只需将属性 `spring-data-releasetrain.version` 配置为要使用的<<dependencies.train-names,系列名称和迭代>>。
+
+[[dependencies.spring-framework]]
+== Spring框架
+
+当前版本的Spring Data模块需要版本{springVersion}或更高版本的Spring框架。这些模块也可以使用该次要版本的错误修复旧版本。但是，强烈建议使用该代中的最新版本。
+

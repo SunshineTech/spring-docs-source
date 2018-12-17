@@ -1,0 +1,43 @@
+= Spring Data Commons - 参考文档
+Oliver Gierke; Thomas Darimont; Christoph Strobl; Mark Pollack; Thomas Risberg;
+:revnumber: {version}
+:revdate: 2017-10-05
+:doctype: book
+:docinfo: shared
+:toc-title: 目录
+:toc: left
+:toclevels: 4
+:source-highlighter: prettify
+:icons: font
+:linkcss:
+:stylesheet: spring.css
+:stylesdir: css
+
+(C) 2008-2015 The original authors.
+
+NOTE: 本文档的副本可以供您自己使用并分发给他人，前提是您不对此类副本收取任何费用，并且只要每份副本包含此版权声明，无论是以印刷版还是电子版分发。
+
+include::preface.adoc[]
+
+[[reference-documentation]]
+= 参考文档
+
+:leveloffset: +1
+include::dependencies.adoc[]
+include::repositories.adoc[]
+include::repository-projections.adoc[]
+include::query-by-example.adoc[]
+include::auditing.adoc[]
+:leveloffset: -1
+
+[[appendix]]
+= 附录
+
+:numbered!:
+:leveloffset: +1
+include::repository-namespace-reference.adoc[]
+include::repository-populator-namespace-reference.adoc[]
+include::repository-query-keywords-reference.adoc[]
+include::repository-query-return-types-reference.adoc[]
+:leveloffset: -1
+
