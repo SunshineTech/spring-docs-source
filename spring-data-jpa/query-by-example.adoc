@@ -1,0 +1,63 @@
+[[query-by-example.execution]]
+== 执行example
+
+在Spring Data JPA中，您可以与Repository一起使用按示例查询。
+
+.使用Repository的按示例查询
+====
+[source, java]
+----
+public interface PersonRepository extends JpaRepository<Person, String> { … }
+
+public class PersonService {
+
+  @Autowired PersonRepository personRepository;
+
+  public List<Person> findPeople(Person probe) {
+    return personRepository.findAll(Example.of(probe));
+  }
+}
+----
+====
+
+NOTE: 目前，只有 `SingularAttribute` 属性可用于属性匹配。
+
+属性说明符接受属性名称（例如“firstname”和“lastname”）。您可以通过将属性与点（“address.city”）链接在一起来导航。您还可以使用匹配选项和区分大小写来调整它。
+
+[cols="1,2", options="header"]
+.`StringMatcher`选项
+|===
+| 匹配
+| 逻辑结果
+
+| `DEFAULT`（区分大小写）
+| `firstname = ?0`
+
+| `DEFAULT`（不区分大小写）
+| `LOWER(firstname) = LOWER(?0)`
+
+| `EXACT`（区分大小写）
+| `firstname = ?0`
+
+| `EXACT`（不区分大小写）
+| `LOWER(firstname) = LOWER(?0)`
+
+| `STARTING`（区分大小写）
+| `firstname like ?0 + '%'`
+
+| `STARTING`（不区分大小写）
+| `LOWER(firstname) like LOWER(?0) + '%'`
+
+| `ENDING`（区分大小写）
+| `firstname like '%' + ?0`
+
+| `ENDING`（不区分大小写）
+| `LOWER(firstname) like '%' + LOWER(?0)`
+
+| `CONTAINING`（区分大小写）
+| `firstname like '%' + ?0 + '%'`
+
+| `CONTAINING`（不区分大小写）
+| `LOWER(firstname) like '%' + LOWER(?0) + '%'`
+
+|===

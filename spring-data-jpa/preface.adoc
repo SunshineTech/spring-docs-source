@@ -1,0 +1,13 @@
+[[preface]]
+= 前言
+
+[[project]]
+[preface]
+== 项目元数据
+
+* 版本控制 - http://github.com/spring-projects/spring-data-jpa
+* 错误追踪系统 - https://jira.spring.io/browse/DATAJPA
+* 发布存储库 - https://repo.spring.io/libs-release
+* 里程碑存储库 - https://repo.spring.io/libs-milestone
+* 快照存储库 - https://repo.spring.io/libs-snapshot
+

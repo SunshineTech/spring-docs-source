@@ -1,0 +1,48 @@
+= Spring Data JPA - 参考文档
+Oliver Gierke; Thomas Darimont; Christoph Strobl; Mark Paluch
+:revnumber: {version}
+:revdate: 2017-10-05
+:doctype: book
+:docinfo: shared
+:toc-title: 目录
+:toc: left
+:toclevels: 4
+:source-highlighter: prettify
+:icons: font
+:linkcss:
+:stylesheet: spring.css
+:stylesdir: css
+:spring-data-commons-docs: ../../../../spring-data-commons/src/main/asciidoc
+:spring-framework-docs: http://docs.spring.io/spring-framework/docs/{springVersion}/spring-framework-reference/
+
+(C) 2008-2016 The original authors.
+
+NOTE: 本文档的副本可以供您自己使用并分发给他人，前提是您不对此类副本收取任何费用，并且只要每份副本包含此版权声明，无论是以印刷版还是电子版分发。
+
+include::preface.adoc[]
+
+:leveloffset: +1
+include::new-features.adoc[]
+include::{spring-data-commons-docs}/dependencies.adoc[]
+include::{spring-data-commons-docs}/repositories.adoc[]
+:leveloffset: -1
+
+[[reference]]
+= 参考文档
+
+:leveloffset: +1
+include::jpa.adoc[]
+:leveloffset: -1
+
+[[appendix]]
+= 附录
+
+:numbered!:
+:leveloffset: +1
+include::{spring-data-commons-docs}/repository-namespace-reference.adoc[]
+include::{spring-data-commons-docs}/repository-populator-namespace-reference.adoc[]
+include::{spring-data-commons-docs}/repository-query-keywords-reference.adoc[]
+include::{spring-data-commons-docs}/repository-query-return-types-reference.adoc[]
+include::faq.adoc[]
+include::glossary.adoc[]
+:leveloffset: -1

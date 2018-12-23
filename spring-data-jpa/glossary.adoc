@@ -1,0 +1,31 @@
+[[glossary]]
+[appendix, glossary]
+= 术语表
+
+AOP::
+   面向切面编程
+
+Commons DBCP::
+   公共数据库连接池 - Apache基金会提供的DataSource接口的池实现的库。
+
+CRUD::
+   创建，读取，更新，删除 - 基本持久性操作。
+
+DAO::
+   数据访问对象 - 将持久化逻辑与要持久化的对象分开的模式
+
+Dependency Injection::
+   将组件的依赖从外部传递给组件的模式，释放组件以查找依赖本身。有关详细信息，请参阅link:$$http://en.wikipedia.org/wiki/Dependency_Injection$$[http://en.wikipedia.org/wiki/Dependency_Injection]。
+
+EclipseLink::
+   实现JPA的对象关系映射器 - link:$$http://www.eclipselink.org$$[http://www.eclipselink.org]
+
+Hibernate::
+   实现JPA的对象关系映射器 - link:$$http://www.hibernate.org$$[http://www.hibernate.org]
+
+JPA::
+   Java持久化API
+
+Spring::
+   Java应用程序框架 - link:$$http://projects.spring.io/spring-framework$$[http://projects.spring.io/spring-framework]
+
