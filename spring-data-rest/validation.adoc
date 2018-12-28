@@ -1,0 +1,21 @@
+[[validation]]
+= 验证
+
+在Spring Data REST中有两种方法注册 `Validator` 实例：通过bean名称装配或手动注册验证器。对于大多数情况，简单的bean名称前缀样式就足够了。
+
+为了告诉Spring Data REST您需要为特定事件分配特定的 `Validator`，您只需在bean名称前加上您感兴趣的事件。
+例如，要在新实例保存到存储库之前验证 `Person` 类的实例，您需要在 `ApplicationContext` 中使用bean名称“beforeCreatePersonValidator”声明 `Validator<Person>` 的实例。
+由于前缀“beforeCreate”与已知的Spring Data REST事件匹配，因此该验证器将装配到正确的事件。
+
+== 手动分配验证器
+
+如果您不想使用bean名称前缀方法，那么只需要向其任务是在正确事件之后调用验证器的bean注册验证器的实例。
+在实现 `RepositoryRestConfigurer` 或子类Spring Data REST的 `RepositoryRestConfigurerAdapter` 的配置中，覆盖 `configureValidatingRepositoryEventListener` 方法并调用 `ValidatingRepositoryEventListener` 的 `addValidator`，传递您希望触发此验证器的事件，以及验证器的实例。
+
+[source,java]
+----
+@Override
+protected void configureValidatingRepositoryEventListener(ValidatingRepositoryEventListener v) {
+  v.addValidator("beforeSave", new BeforeSaveValidator());
+}
+----

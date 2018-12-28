@@ -1,0 +1,192 @@
+[[install-chapter]]
+= 入门
+
+[[getting-started.introduction]]
+== 介绍
+
+Spring Data REST本身是一个Spring MVC应用程序，其设计方式应该可以轻松地与现有的Spring MVC应用程序集成。现有（或未来）的服务层可以与Spring Data REST一起运行，只需要很少的考虑。
+
+[[getting-started.boot]]
+== 将Spring Data REST添加到Spring Boot项目
+
+最简单的入门方法是构建Spring Boot应用程序。这是因为Spring Data REST既有启动器也有自动配置。
+
+.Gradle的Spring Boot配置
+[source,groovy]
+----
+dependencies {
+  ...
+  compile("org.springframework.boot:spring-boot-starter-data-rest")
+  ...
+}
+----
+
+.Maven的Spring Boot配置
+[source,xml]
+----
+<dependencies>
+  ...
+  <dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-rest</artifactId>
+  </dependency>
+  ...
+</dependencies>
+----
+
+NOTE: 如果使用 http://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#build-tool-plugins-gradle-plugin[Spring Boot Gradle插件]或 the http://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#build-tool-plugins-maven-plugin[Spring Boot Maven插件]，则不必提供版本号。
+
+使用Spring Boot时，Spring Data REST会自动获得配置。
+
+[[getting-started.gradle]]
+== 将Spring Data REST添加到Gradle项目
+
+要将Spring Data REST添加到基于Gradle的项目，请将 `spring-data-rest-webmvc` 工件添加到编译时依赖：
+
+[source,groovy,subs="verbatim,attributes"]
+----
+dependencies {
+  … other project dependencies
+  compile("org.springframework.data:spring-data-rest-webmvc:{version}")
+}
+----
+
+[[getting-started.maven]]
+== 将Spring Data REST添加到Maven项目
+
+要将Spring Data REST添加到基于Maven的项目，请将 `spring-data-rest-webmvc` 工件添加到编译时依赖：
+
+[source,xml,subs="verbatim,attributes"]
+----
+<dependency>
+  <groupId>org.springframework.data</groupId>
+  <artifactId>spring-data-rest-webmvc</artifactId>
+  <version>{version}</version>
+</dependency>
+----
+
+[[getting-started.configuration]]
+== 配置Spring Data REST
+
+要在现有的Spring MVC应用程序旁边安装Spring Data REST，需要包含适当的MVC配置。Spring Data REST配置在名为 `RepositoryRestMvcConfiguration` 的类中定义，该类可以直接导入到应用程序配置中。
+
+IMPORTANT: 如果使用Spring Boot的自动配置，则无需此步骤。当将 *spring-boot-starter-data-rest* 包含在依赖列表中，并且应用程序标记为 `@SpringBootApplication` 或 `@EnableAutoConfiguration` 时，Spring Boot将自动启用Spring Data REST。
+
+要自定义配置，请注册 `RepositoryRestConfigurer`（或扩展 `RepositoryRestConfigurerAdapter`）并实现或覆盖与您的用例相关的 `configure…` 方法。
+
+确保还为您使用的存储配置Spring Data存储库。有关详细信息，请参阅 http://projects.spring.io/spring-data/[相应Spring Data模块]的参考文档。
+
+[[getting-started.basic-settings]]
+== Spring Data REST的基本设置
+
+=== 哪些存储库默认公开？
+
+Spring Data REST使用 `RepositoryDetectionStrategy` 来确定是否将存储库导出为REST资源。以下策略（`RepositoryDiscoveryStrategies` 的枚举值）可用：
+
+.存储库检测策略
+[cols="1,5". options="header"]
+|===
+| 名称         | 描述
+
+| `DEFAULT`    | 公开所有公共存储库接口，但考虑 `@(Repository)RestResource` 的 `exported` 标志。
+| `ALL`        | 独立于类型可见性和注解公开所有存储库。
+| `ANNOTATION` | 仅公开使用 `@(Repository)RestResource` 注解的存储库，除非其 `exported` 标志设置为 `false`。
+| `VISIBILITY` | 仅公开注解的公共存储库。
+|===
+
+=== 更改基本URI
+
+默认情况下，Spring Data REST在根URI “/”处提供REST资源。有多种方法可以更改该基本路径。
+
+使用Spring Boot 1.2+，只需在 `application.properties` 中使用一个属性：
+
+[source,properties]
+----
+spring.data.rest.basePath=/api
+----
+
+使用Spring Boot 1.1或更早版本，或者不使用Spring Boot，只需这样做：
+
+[source,java]
+----
+@Configuration
+class CustomRestMvcConfiguration {
+
+  @Bean
+  public RepositoryRestConfigurer repositoryRestConfigurer() {
+
+    return new RepositoryRestConfigurerAdapter() {
+
+      @Override
+      public void configureRepositoryRestConfiguration(RepositoryRestConfiguration config) {
+        config.setBasePath("/api");
+      }
+    };
+  }
+}
+----
+
+或者，只需将 `RepositoryRestConfigurer` 的自定义实现注册为Spring bean，并确保它通过组件扫描获取：
+
+[source,java]
+----
+@Component
+public class CustomizedRestMvcConfiguration extends RepositoryRestConfigurerAdapter {
+
+  @Override
+  public void configureRepositoryRestConfiguration(RepositoryRestConfiguration config) {
+    config.setBasePath("/api");
+  }
+}
+----
+
+这两种方法都会将基本路径更改为 `/api`。
+
+=== 更改其他 Spring Data REST属性
+
+您可以更改许多属性：
+
+.Spring Boot配置属性
+[cols="1,5". options="header"]
+|===
+| 名称               | 描述
+
+| basePath           | Spring Data REST根URI
+| defaultPageSize    | 更改单个页面中提供的默认项目数
+| maxPageSize        | 更改单个页面中提供的最大项目数
+| pageParamName      | 更改用于选择页面的查询参数名称
+| limitParamName     | 更改要在页面中显示的项目数的查询参数名称
+| sortParamName      | 更改排序的查询参数名称
+| defaultMediaType   | 更改在未指定时使用的默认媒体类型
+| returnBodyOnCreate | 更改创建新实体时，是否应该返回body
+| returnBodyOnUpdate | 更改更新实体时，是否应该返回body
+|===
+
+[[getting-started.bootstrap]]
+== 启动应用程序
+
+此时，您还必须配置关键数据存储。
+
+Spring Data REST正式支持：
+
+* http://projects.spring.io/spring-data-jpa/[Spring Data JPA]
+* http://projects.spring.io/spring-data-mongodb/[Spring Data MongoDB]
+* http://projects.spring.io/spring-data-neo4j/[Spring Data Neo4j]
+* http://projects.spring.io/spring-data-gemfire/[Spring Data GemFire]
+* http://projects.spring.io/spring-data-cassandra/[Spring Data Cassandra]
+
+以下是一些入门指南，帮助您快速启动和运行：
+
+* https://spring.io/guides/gs/accessing-data-rest/[Spring Data JPA]
+* https://spring.io/guides/gs/accessing-mongodb-data-rest/[Spring Data MongoDB]
+* https://spring.io/guides/gs/accessing-neo4j-data-rest/[Spring Data Neo4j]
+* https://spring.io/guides/gs/accessing-gemfire-data-rest/[Spring Data GemFire]
+
+这些链接指南介绍了如何为相关数据存储添加依赖项，配置域对象和定义存储库。
+
+您可以将应用程序作为Spring Boot应用程序（上面显示链接）运行，也可以将其配置为经典的Spring MVC应用程序。
+
+NOTE: 通常，Spring Data REST不会向给定的数据存储添加功能。这意味着根据定义，它应该适用于任何支持Repository编程模型的Spring Data项目。
+上面列出的数据存储只是我们编写的集成测试要验证的数据存储。
+
+从这一点开始，您可以自由地使用各种选项来<<customizing-sdr,自定义Spring Data REST>>。

@@ -1,0 +1,50 @@
+[[customizing-sdr.adding-sdr-to-spring-mvc-app]]
+= 将Spring Data REST添加到现有的Spring MVC应用程序
+
+NOTE: 如果使用Spring Boot，则不需要执行以下步骤。添加 *spring-boot-starter-data-rest* 会使其自动添加到您的应用程序中。
+
+如果您有一个现有的Spring MVC应用程序并且您想要集成Spring Data REST，那么它实际上非常简单。
+
+Spring MVC配置中的某个位置（很可能是配置MVC资源的位置）向负责配置 `RepositoryRestController` 的JavaConfig类添加一个bean引用。
+该类名是 `org.springframework.data.rest.webmvc.RepositoryRestMvcConfiguration`。
+
+在Java中，这看起来像这样：
+
+[source,java]
+----
+import org.springframework.context.annotation.Import;
+import org.springframework.data.rest.webmvc.RepositoryRestMvcConfiguration;
+
+@Configuration
+@Import(RepositoryRestMvcConfiguration.class)
+public class MyApplicationConfiguration {
+
+  …
+}
+----
+
+在XML中，这看起来像这样：
+
+[source,xml]
+----
+<bean class="org.springframework.data.rest.webmvc.config.RepositoryRestMvcConfiguration"/>
+----
+
+当您的ApplicationContext遇到此bean定义时，它将引导必要的Spring MVC资源以完全配置控制器，以便导出它在 `ApplicationContext` 和任何父上下文中找到的存储库。
+
+== 更多关于所需配置
+
+Spring Data REST依赖的一些Spring MVC资源必须正确配置才能在现有的Spring MVC应用程序中运行。
+我们试图将这些资源与应用程序中已存在的任何类似资源隔离开来，但它可能是您希望通过修改这些MVC组件来自定义Spring Data REST的某些行为。
+
+我们特别为Spring Data REST配置的最重要的东西包括：
+
+=== RepositoryRestHandlerMapping
+
+我们注册一个自定义 `HandlerMapping` 实例，该实例仅响应 `RepositoryRestController`，并且只有在Spring Data REST处理路径时才会这样做。
+为了使应用程序要处理的路径与Spring Data REST处理的路径分开，此自定义 `HandlerMapping` 检查URL路径并检查是否已在该名称下导出存储库。
+如果有，它允许Spring Data REST处理该请求。如果该名称下没有导出存储库，则返回 `null`，这意味着“让其他 `HandlerMapping` 实例尝试为此请求提供服务”。
+
+Spring Data REST `HandlerMapping` 使用 `order=(Ordered.LOWEST_PRECEDENCE - 100)` 配置，这意味着它在映射URL路径时通常会排在第一位。
+您现有的应用程序永远不会有机会为存储库请求提供服务。例如，如果您以名称“person”导出存储库，则所有以 `/person` 开头的应用程序请求将由Spring Data REST处理，您的应用程序将永远不会看到该请求。
+但是，如果您的存储库是以不同的名称导出的（例如“people”），那么对 `/people` 的请求将转到Spring Data REST，对“/person”的请求将由您的应用程序处理。

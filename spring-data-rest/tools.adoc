@@ -1,0 +1,56 @@
+[[tools]]
+= 工具
+:spring-data-rest-root: ../../..
+
+== HAL浏览器
+
+
+http://stateless.co/hal_specification.html[HAL规范]的开发人员有一个有用的应用程序：https://github.com/mikekelly/hal-browser[HAL浏览器]。它是一个Web应用程序，在一个小的HAL驱动的JavaScript中运行。
+您可以将它指向任何Spring Data REST API，并使用它来导航应用程序并创建新资源。
+
+不是拉取文件，而是将它们嵌入到您的应用程序中，并制作一个Spring MVC控制器来为它们提供服务，您需要做的就是添加一个依赖项。
+
+In Maven:
+
+[source,xml]
+----
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.data</groupId>
+        <artifactId>spring-data-rest-hal-browser</artifactId>
+    </dependency>
+</dependencies>
+----
+
+In Gradle:
+
+[source,groovy]
+----
+dependencies {
+    compile 'org.springframework.data:spring-data-rest-hal-browser'
+}
+----
+
+NOTE: 如果使用Spring Boot或Spring Data BOM（物料清单），则无需指定版本。
+
+当您在浏览器中访问应用程序的根URI时，此依赖将自动配置要提供的HAL浏览器。
+
+NOTE: http://localhost:8080 已插入浏览器，并重定向到下面显示的URL。
+
+image::hal-browser-1.png[]
+
+上面的屏幕截图显示了API的根路径。右侧是响应的详细信息，包括头和体（HAL文档）。
+
+HAL浏览器从响应中读取链接并将它们放在左侧的列表中。您可以点击 *GET* 按钮并导航到其中一个，也可以点击 *non-GET* 选项进行更改。
+
+HAL浏览器会讲 *URI Template*。您可能会注意到 *persons* 旁边的 *GET* 按钮上方有一个问号图标。如果您选择导航到它，将弹出一个像这样的扩展对话框：
+
+image::hal-browser-3.png[]
+
+如果不输入任何内容点击 *Follow URI*，则基本上将忽略变量。对于像<<projections-excerpts>>或<<paging-and-sorting>>的情况，这可能非常有用。
+
+点击 *non-GET* 按钮时，将显示弹出对话框。默认情况下，它显示 *POST*。这个字段可以调整为 *PUT* 或 *PATCH*。头已正确填写以提交一个新JSON文档。
+
+URI、方法和头以下都是字段。这些是基于资源的元数据自动提供的，由Spring Data REST自动生成。更新您的域对象，弹出窗口将反映它。
+
+image::hal-browser-2.png[height="150"]

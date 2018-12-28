@@ -1,0 +1,43 @@
+[[customizing-sdr.customizing-json-output]]
+= 自定义JSON输出
+
+有时在您的应用程序中，您需要提供指向特定实体的其他资源的链接。例如，`Customer` 响应可能会通过指向当前购物车的链接或管理与该实体相关的资源的链接进行丰富。
+Spring Data REST提供与 https://github.com/SpringSource/spring-hateoas[Spring HATEOAS]集成，并为用户提供扩展挂钩，以改变向客户端发送的资源的表示形式。
+
+== ResourceProcessor接口
+
+Spring HATEOAS为处理实体定义了 `ResourceProcessor<>` 接口。所有 `ResourceProcessor&lt;Resource&lt;T&gt;&gt;` 类型的bean都将由Spring Data REST导出器自动获取，并在序列化 `T` 类型的实体时触发。
+
+例如，要为 `Person` 实体定义处理器，请将 `@Bean` 添加到您的 `ApplicationContext`，如下所示（取自Spring Data REST测试）：
+
+[source,java]
+----
+@Bean
+public ResourceProcessor<Resource<Person>> personProcessor() {
+
+   return new ResourceProcessor<Resource<Person>>() {
+
+     @Override
+     public Resource<Person> process(Resource<Person> resource) {
+
+      resource.add(new Link("http://localhost:8080/people", "added-link"));
+      return resource;
+     }
+   };
+}
+----
+
+IMPORTANT: 此示例硬编码指向 `http://localhost:8080/people` 的链接。如果您希望链接到应用程序中的Spring MVC端点，请考虑使用Spring HATEOAS的 https://github.com/spring-projects/spring-hateoas#building-links-pointing-to-methods[`linkTo(...)`]方法，以避免管理URL。
+
+== 添加链接
+
+只需像上例一样调用 `resource.add(Link)`，就可以添加指向实体默认表示的链接。您添加到 `Resource` 的任何链接都将添加到最终输出中。
+
+== 自定义表示
+
+Spring Data REST导出器在创建输出表示之前执行任何发现的 `ResourceProcessor`。它通过使用内部 `ConversionService` 注册 `Converter<Entity, Resource>` 实例来实现此目的。
+这是负责创建指向引用实体（例如，对象的JSON表示中 *_links* 属性下的那些对象）的链接的组件。
+它接收 `@Entity` 并迭代其属性，为 `Repository` 管理的属性创建链接，并复制任何嵌入或简单属性。
+
+但是，如果您的项目需要以不同的格式输出，则可以用您自己的完全替换默认的传出JSON表示。
+如果您在ApplicationContext中注册自己的 `ConversionService` 并注册自己的 `Converter<Person, Resource>`，那么您可以返回一个您选择的 `Resource` 实现。

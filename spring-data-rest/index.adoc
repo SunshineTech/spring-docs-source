@@ -1,0 +1,52 @@
+[[spring-data-rest-reference]]
+= Spring Data REST - 参考文档
+Jon Brisbin, Oliver Gierke, Greg Turnquist
+:revnumber: {version}
+:revdate: 2017-10-05
+:doctype: book
+:docinfo: shared
+:toc-title: 目录
+:toc: left
+:toclevels: 4
+:source-highlighter: prettify
+:icons: font
+:linkcss:
+:stylesheet: spring.css
+:stylesdir: css
+:imagesdir: images
+:spring-data-commons-docs: ../../../../../spring-data-commons/src/main/asciidoc
+
+(C) 2012-2015 Original authors
+
+NOTE: _本文档的副本可供您自己使用并分发给他人，前提是您不对此类副本收取任何费用，并且每份副本均包含本版权声明，无论是以印刷版还是电子版分发。_
+
+
+include::preface.adoc[]
+:leveloffset: +1
+include::{spring-data-commons-docs}/dependencies.adoc[]
+:leveloffset: -1
+
+[[reference]]
+= 参考文档
+
+include::intro.adoc[leveloffset=+1]
+include::getting-started.adoc[leveloffset=+1]
+include::repository-resources.adoc[leveloffset=+1]
+include::paging-and-sorting.adoc[leveloffset=+1]
+include::representations.adoc[leveloffset=+1]
+include::projections-excerpts.adoc[leveloffset=+1]
+include::etags-and-other-conditionals.adoc[leveloffset=+1]
+include::validation.adoc[leveloffset=+1]
+include::events.adoc[leveloffset=+1]
+include::integration.adoc[leveloffset=+1]
+include::metadata.adoc[leveloffset=+1]
+include::security.adoc[leveloffset=+1]
+include::tools.adoc[leveloffset=+1]
+include::customizing-sdr.adoc[leveloffset=+1]
+
+[[appendix]]
+= 附录
+
+:numbered!:
+include::example-api-usage-with-curl.adoc[leveloffset=+1]
+include::spring-data-rest-examples.adoc[leveloffset=+1]

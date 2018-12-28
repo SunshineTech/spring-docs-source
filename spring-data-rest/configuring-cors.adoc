@@ -1,0 +1,74 @@
+[[customizing-sdr.configuring-cors]]
+= 配置CORS
+
+出于安全原因，浏览器禁止对驻留在当前源之外的资源进行AJAX调用。使用浏览器发出的客户端HTTP请求时，您希望使特定HTTP资源能够访问。
+
+从2.6开始，Spring Data REST通过 http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/web.html#mvc-cors[Spring的CORS]支持支持 http://en.wikipedia.org/wiki/Cross-origin_resource_sharing[跨源资源共享]（CORS）。
+
+
+== 存储库接口CORS配置
+
+您可以将 `@CrossOrigin` 注解添加到存储库接口，以便为整个存储库启用CORS。默认情况下，`@CrossOrigin` 允许所有的源和HTTP方法：
+
+[source, java]
+----
+@CrossOrigin
+interface PersonRepository extends CrudRepository<Person, Long> {}
+----
+
+在上例中，为整个 `PersonRepository` 启用CORS支持。`@CrossOrigin` 提供配置CORS支持的属性。
+
+[source, java]
+----
+@CrossOrigin(origins = "http://domain2.com",
+  methods = { RequestMethod.GET, RequestMethod.POST, RequestMethod.DELETE },
+  maxAge = 3600)
+interface PersonRepository extends CrudRepository<Person, Long> {}
+----
+
+此示例为整个 `PersonRepository` 启用CORS支持，提供一个源，仅限 `GET`、`POST` 和 `DELETE` 方法，最大使用期限为3600秒。
+
+== 存储库REST控制器方法的CORS配置
+
+Spring Data REST完全支持在自定义REST控制器上共享存储库基本路径的 http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/web.html#controller-method-cors-configuration[Spring Web MVC的控制器方法配置]。
+
+[source, java]
+----
+@RepositoryRestController
+public class PersonController {
+
+  @CrossOrigin(maxAge = 3600)
+  @RequestMapping(path = "/people/xml/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_XML_VALUE)
+  public Person retrieve(@PathVariable Long id) {
+    // …
+  }
+}
+----
+
+NOTE: 使用 `@RepositoryRestController` 注解的控制器从其关联的存储库继承 `@CrossOrigin` 配置。
+
+== 全局CORS配置
+
+除了基于注解的细粒度配置外，您可能还需要定义一些全局CORS配置。这类似于Spring Web MVC的CORS配置，但可以在Spring Data REST中声明，并与细粒度 `@CrossOrigin` 配置相结合。
+默认情况下，允许所有源和 `GET`、`HEAD` 和 `POST` 方法。
+
+NOTE: 现有的Spring Web MVC CORS配置不应用于Spring Data REST。
+
+[source, java]
+----
+@Component
+public class SpringDataRestCustomization extends RepositoryRestConfigurerAdapter {
+
+  @Override
+  public void configureRepositoryRestConfiguration(RepositoryRestConfiguration config) {
+
+    config.getCorsRegistry().addMapping("/person/**")
+      .allowedOrigins("http://domain2.com")
+      .allowedMethods("PUT", "DELETE")
+      .allowedHeaders("header1", "header2", "header3")
+      .exposedHeaders("header1", "header2")
+      .allowCredentials(false).maxAge(3600);
+  }
+}
+----
+

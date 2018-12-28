@@ -1,0 +1,30 @@
+[[spring-data-examples]]
+[appendix]
+= Spring Data REST示例项目
+
+本附录包含Spring Data REST示例应用程序列表。不保证每个示例的确切版本与本参考手册的版本相匹配。
+
+NOTE: 要获得所有这些，请访问 https://github.com/spring-projects/spring-data-examples 并克隆或下载zipball。这将为您提供所有支持的Spring Data项目的示例应用程序。
+只需导航到 `spring-data-examples/rest`。
+
+[[spring-data-examples.multi-store]]
+== 多存储示例
+
+https://github.com/spring-projects/spring-data-examples/tree/master/rest/multi-store[此示例]显示了如何将几个基础Spring Data项目混合在一起。
+
+[[spring-data-examples.projections]]
+== 投影
+
+https://github.com/spring-projects/spring-data-examples/tree/master/rest/projections[此示例]包含更详细的代码，您可以用于探究<<projections-excerpts,投影>>。
+
+[[spring-data-examples.spring-security]]
+== Spring Data REST + Spring Security
+
+https://github.com/spring-projects/spring-data-examples/tree/master/rest/security[此示例]显示如何使用 http://projects.spring.io/spring-security[Spring Security]以多种方式保护 http://projects.spring.io/spring-data-rest[Spring Data REST]应用程序。
+
+[[spring-data-examples.starbucks]]
+== 星巴克示例
+
+https://github.com/spring-projects/spring-data-examples/tree/master/rest/starbucks[此示例]通过RESTful API公开10843家星巴克咖啡店，该API允许以基于超媒体方式访问商店并公开资源以执行咖啡店的地理位置搜索。
+
+

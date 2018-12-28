@@ -1,0 +1,10 @@
+[[example-api-usage-with-curl]]
+[appendix]
+= 使用cURL与Spring Data REST交谈
+
+本附录包含一系列指南，演示了通过cURL与Spring Data REST服务进行交互：
+
+* https://spring.io/guides/gs/accessing-data-rest/[使用REST访问JPA数据]
+* https://spring.io/guides/gs/accessing-neo4j-data-rest/[使用REST访问Neo4j数据]
+* https://spring.io/guides/gs/accessing-mongodb-data-rest/[使用REST访问MongoDB数据]
+* https://spring.io/guides/gs/accessing-gemfire-data-rest/[使用REST访问GemFire数据]

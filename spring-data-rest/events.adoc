@@ -1,0 +1,82 @@
+[[events]]
+= 事件
+
+在整个使用实体的过程中，REST导出器会发出八种不同的事件。它们是：
+
+* `BeforeCreateEvent`
+* `AfterCreateEvent`
+* `BeforeSaveEvent`
+* `AfterSaveEvent`
+* `BeforeLinkSaveEvent`
+* `AfterLinkSaveEvent`
+* `BeforeDeleteEvent`
+* `AfterDeleteEvent`
+
+[[events.application-listener]]
+== 编写ApplicationListener
+
+您可以子类一个监听这些类型的事件，并根据事件类型调用适当方法的抽象类。您只需覆盖您感兴趣的事件的方法。
+
+[source,java]
+----
+public class BeforeSaveEventListener extends AbstractRepositoryEventListener {
+
+  @Override
+  public void onBeforeSave(Object entity) {
+    ... logic to handle inspecting the entity before the Repository saves it
+  }
+
+  @Override
+  public void onAfterDelete(Object entity) {
+    ... send a message that this entity has been deleted
+  }
+}
+----
+
+然而，这种方法需要注意的一点是，它不会根据实体类型进行区分。您必须自己检查一下。
+
+== 编写注解的处理器
+
+另一种方法是使用注解的处理器，它根据域类型过滤事件。
+
+要声明一个处理器，请创建一个POJO并在其上放置 `@RepositoryEventHandler` 注解。这告诉 `BeanPostProcessor` 需要检查此类的处理器方法。
+
+一旦找到带有此注解的bean，它就会遍历公开的方法并查找与您感兴趣的事件相对应的注解。例如，要在注解的POJO中处理不同种类域类型的 `BeforeSaveEvent`，可以像这样定义类：
+
+[source,java]
+----
+@RepositoryEventHandler <1>
+public class PersonEventHandler {
+
+  @HandleBeforeSave
+  public void handlePersonSave(Person p) {
+    // … you can now deal with Person in a type-safe way
+  }
+
+  @HandleBeforeSave
+  public void handleProfileSave(Profile p) {
+    // … you can now deal with Profile in a type-safe way
+  }
+}
+----
+
+<1> 通过使用 `@RepositoryEventHandler(Person.class)`，可以缩小此处理器应用的类型。
+
+您感兴趣的事件的域类型是根据注解的方法的第一个参数的类型确定的。
+
+要注册事件处理器，请使用Spring的 `@Component` 原型之一标记该类，以便 `@SpringBootApplication` 或 `@ComponentScan` 选择它。
+或者在 `ApplicationContext` 中声明注解的bean的实例。然后在 `RepositoryRestMvcConfiguration` 中创建的 `BeanPostProcessor` 将检查处理器bean并将它们装配到正确的事件。
+
+[source,java]
+----
+@Configuration
+public class RepositoryConfiguration {
+
+  @Bean
+  PersonEventHandler personEventHandler() {
+    return new PersonEventHandler();
+  }
+}
+----
+
+NOTE: Spring Data REST事件是自定义的 http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/core.html#context-functionality-events[Spring应用程序事件]。Spring事件默认是同步的，除非它们跨边界（比如发出WebSocket事件或跨线程）重新发布。

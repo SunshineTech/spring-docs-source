@@ -1,0 +1,65 @@
+[[customizing-sdr]]
+= 自定义Spring Data REST
+
+有许多选项可以定制Spring Data REST。这些小节显示如何做。
+
+== 自定义项目资源URI
+
+默认情况下，项目资源的URI由用于集合资源的路径段和附加的数据库标识符组成。这允许我们使用存储库的 `findOne(…)` 方法来查找实体实例。
+从Spring Data REST 2.5开始，可以使用 `RepositoryRestConfiguration`（Java 8首选）上的配置API或在应用程序中将 `EntityLookup` 的实现注册为Spring bean来自定义。
+Spring Data REST将根据它们的实现选择那些并调整URI生成。
+
+假设 `User` 具有唯一标识它的 `username` 属性。此外，假设我们在相应存储库上有一个 `Optional<User> findByUsername(String username)` 方法。
+
+在Java 8上，我们可以简单地将映射方法注册为方法引用，以弱化URI创建，如下所示：
+
+[source, java]
+----
+@Component
+public class SpringDataRestCustomization extends RepositoryRestConfigurerAdapter {
+
+  @Override
+  public void configureRepositoryRestConfiguration(RepositoryRestConfiguration config) {
+
+    config.withCustomEntityLookup().//
+      forRepository(UserRepository.class, User::getUsername, UserRepository::findByUsername);
+  }
+}
+----
+
+`forRepository(…)` 将存储库类型作为第一个参数，将存储库域类型映射到某个目标类型的方法引用，以及使用作为第一个参数提到的存储库映射该值的另一个方法引用。
+
+如果您没有运行Java 8或更高版本，则可以使用需要使用一些非常详细的匿名内部类的方法。这就是为什么在较旧的Java版本上，您可能更喜欢如下实现 `UserEntityLookup`：
+
+[source, java]
+----
+@Component
+public class UserEntityLookup extends EntityLookupSupport<User> {
+
+    private final UserRepository repository;
+
+    public UserEntityLookup(UserRepository repository) {
+        this.repository = repository;
+    }
+
+    @Override
+    public Serializable getResourceIdentifier(User entity) {
+        return entity.getUsername();
+    }
+
+    @Override
+    public Object lookupEntity(Serializable id) {
+        return repository.findByUsername(id.toString());
+    }
+}
+----
+
+NOTE: `getResourceIdentifier(…)` 如何返回URI创建使用的username。要通过从该方法返回的值加载实体实例，我们现在使用 `UserRepository` 提供的查询方法实现 `lookupEntity(…)`。
+
+
+include::configuring-the-rest-url-path.adoc[leveloffset=+1]
+include::adding-sdr-to-spring-mvc-app.adoc[leveloffset=+1]
+include::overriding-sdr-response-handlers.adoc[leveloffset=+1]
+include::customizing-json-output.adoc[leveloffset=+1]
+include::custom-jackson-deserialization.adoc[leveloffset=+1]
+include::configuring-cors.adoc[leveloffset=+1]

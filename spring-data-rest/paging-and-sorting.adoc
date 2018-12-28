@@ -1,0 +1,133 @@
+[[paging-and-sorting]]
+= 分页和排序
+
+_这记录了Spring Data REST对Spring Data Repository分页和排序抽象的使用。要熟悉这些功能，请参阅您正在使用的Repository实现的Spring Data文档。_
+
+== 分页
+
+Spring Data REST不会返回大型结果集中的所有内容，而是会识别一些会影响页面大小和起始页码的URL参数。
+
+如果您扩展 `PagingAndSortingRepository<T, ID>` 并访问所有实体的列表，您将获得前20个实体的链接。要将页面大小设置为任何其他数字，请添加 `size` 参数：
+
+----
+http://localhost:8080/people/?size=5
+----
+
+这将设置页面大小为5。
+
+要在您自己的查询方法中使用分页，您需要更改方法签名以接受额外的 `Pageable` 参数并返回 `Page` 而不是 `List`。 例如，以下查询方法将导出为 `/people/search/nameStartsWith` 并支持分页：
+
+[source,java]
+----
+@RestResource(path = "nameStartsWith", rel = "nameStartsWith")
+public Page findByNameStartsWith(@Param("name") String name, Pageable p);
+----
+
+Spring Data REST导出器将识别返回的 `Page` ，并在响应体中为您提供结果，就像使用非分页响应一样，但是将额外的链接添加到资源中代表上一页和下一页数据。
+
+[[paging-and-sorting.prev-and-next-links]]
+=== 上一页和下一页链接
+
+每个分页响应将使用IANA定义的链接关系 http://www.w3.org/TR/html5/links.html#link-type-prev[`prev`]和 http://www.w3.org/TR/html5/links.html#link-type-next[`next`]返回基于当前页面结果的上一页和下一页的链接。但是，如果您当前位于结果的第一页，则不会呈现`prev` 链接。结果的最后一页也是如此：不会呈现 `next` 链接。
+
+请看下面的示例，我们将页面大小设置为5：
+
+----
+curl localhost:8080/people?size=5
+----
+
+[source,javascript]
+----
+{
+  "_links" : {
+    "self" : {
+      "href" : "http://localhost:8080/persons{&sort,page,size}", <1>
+      "templated" : true
+    },
+    "next" : {
+      "href" : "http://localhost:8080/persons?page=1&size=5{&sort}", <2>
+      "templated" : true
+    }
+  },
+  "_embedded" : {
+  	... data ...
+  },
+  "page" : { <3>
+    "size" : 5,
+    "totalElements" : 50,
+    "totalPages" : 10,
+    "number" : 0
+  }
+}
+----
+
+在顶部，我们看到 `_links`：
+
+<1> 这个 `self` 链接为整个集合提供一些选项
+<2> 假设页面大小相同，此 `next` 链接指向下一页。
+<3> 底部是有关页面设置的额外数据，包括页面大小、总元素、总页数以及您当前正在查看的页码。
+
+NOTE: 在命令行使用 *curl* 等工具时，如果在语句中有"&"，请用引号封装整个URI。
+
+注意 `self` 和 `next` URI实际上是URI模板也很重要。它们不仅接受 `size`，还接受 `page`、`sort` 作为可选标志。
+
+如上所述，在HAL文档的底部，是有关页面详细信息的集合。这些额外信息使您非常轻松配置滑块或指示器等UI工具，以反映用户查看数据的整体位置。例如，上面的文档显示我们正在查看第一页（索引为0的页码是第一页）。
+
+如果我们跟随 `next` 链接会发生什么？
+
+----
+$ curl "http://localhost:8080/persons?page=1&size=5"
+----
+
+[source,javascript]
+----
+{
+  "_links" : {
+    "self" : {
+      "href" : "http://localhost:8080/persons{&sort,projection,page,size}",
+      "templated" : true
+    },
+    "next" : {
+      "href" : "http://localhost:8080/persons?page=2&size=5{&sort,projection}", <1>
+      "templated" : true
+    },
+    "prev" : {
+      "href" : "http://localhost:8080/persons?page=0&size=5{&sort,projection}", <2>
+      "templated" : true
+    }
+  },
+  "_embedded" : {
+	... data ...
+  },
+  "page" : {
+    "size" : 5,
+    "totalElements" : 50,
+    "totalPages" : 10,
+    "number" : 1 <3>
+  }
+}
+----
+
+除了以下差异外，这看起来非常相似：
+
+<1> `next` 链接现在指向另一页，指示它与 `self` 链接的相对视角。
+<2> 现在显示 `prev` 链接，为我们提供上一页的路径。
+<3> 当前页码现在为1（表示第二页）。
+
+此功能使得将屏幕上的可选按钮映射到这些超媒体控件非常容易，因此可以轻松实现UI体验的导航功能，而无需对URI进行硬编码。
+实际上，用户可以从页面大小列表中进行选择，动态地更改提供的内容，而无需重写顶部或底部的 `next` 和 `prev` 控件。
+
+[[paging-and-sorting.sorting]]
+== 排序
+
+Spring Data REST识别将使用Repository排序支持的排序参数。
+
+要使结果按特定属性排序，请添加 `sort` URL参数以及要对结果进行排序的属性的名称。可以通过将 `,` 附加到属性名称加上 `asc` 或 `desc` 来控制排序的方向。
+以下将使用 `PersonRepository` 上定义的 `findByNameStartsWith` 查询方法，查找名称以字母“K”开头的所有 `Person` 实体，并添加排序数据按 `name` 属性降序排序结果：
+
+----
+curl -v "http://localhost:8080/people/search/nameStartsWith?name=K&sort=name,desc"
+----
+
+要按多个属性对结果进行排序，请不断添加所需数量的 `sort=PROPERTY` 参数。它们将按照其在查询字符串中出现的顺序添加到 `Pageable` 中。结果可以按顶级和嵌套属性进行排序。
+使用属性路径表示法表示嵌套排序属性。不支持通过可链接关联（即资源到顶级资源）排序。

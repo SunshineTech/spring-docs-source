@@ -1,0 +1,278 @@
+[[repository-resources]]
+= 存储库资源
+
+[[repository-resources.fundamentals]]
+== 基本原理
+
+Spring Data REST的核心功能是导出Spring Data存储库的资源。因此，查看并潜在地调整定制导出工作方式的核心工件是存储库接口。假设以下存储库接口：
+
+[source]
+----
+public interface OrderRepository extends CrudRepository<Order, Long> { }
+----
+
+对于此存储库，Spring Data REST在 `/orders` 公开一个集合资源。该路径源自正在管理的域类的非大写，复数，简单的类名。
+它还为存储库管理的每个项目在URI模板 `/orders/{id}` 下公开项目资源。
+
+默认情况下，与这些资源交互的HTTP方法映射到 `CrudRepository` 的相应方法。请参阅<<repository-resources.collection-resource,集合资源>>和<<repository-resources.item-resource,项目资源>>章节中的更多信息。
+
+[[repository-resources.default-status-codes]]
+=== 默认状态代码
+
+对于公开的资源，我们使用一组默认状态代码：
+
+* `200 OK` - 用于普通的 `GET` 请求。
+* `201 Created` - 用于创建新资源的 `POST` 和 `PUT` 请求。
+* `204 No Content` - 用于如果配置设置为不返回资源更新的响应主体（`RepositoryRestConfiguration.returnBodyOnUpdate`）时的 `PUT`、`PATCH` 和 `DELETE` 请求。
+如果配置值设置为包含 `PUT` 的响应，则将为更新返回 `200 OK`，将为通过 `PUT`创建的资源返回 `201 Created`。
+
+如果配置值（`RepositoryRestConfiguration.returnBodyOnUpdate` 和 `RepositoryRestConfiguration.returnBodyCreate`）显式设置为null，则HTTP Accept头的存在将用来确定响应代码。
+
+[[repository-resources.resource-discoverability]]
+=== 资源可发现性
+
+https://spring.io/understanding/HATEOAS[HATEOAS]的核心原则是通过发布指向可用资源的链接来发现资源。如何在JSON中表示链接有一些相互竞争的事实标准。
+默认情况下，Spring Data REST使用 http://tools.ietf.org/html/draft-kelly-json-hal[HAL]来呈现响应。HAL定义要包含在返回文档的属性中的链接。
+
+资源发现从应用程序的顶层开始。通过向部署Spring Data REST应用程序的根URL发出请求，客户端可以从返回的JSON对象中提取一组表示客户端可用的下一级资源的链接。
+
+例如，要发现应用程序根中可用的资源，请向根URL发出HTTP `GET`：
+
+[source]
+----
+curl -v http://localhost:8080/
+
+< HTTP/1.1 200 OK
+< Content-Type: application/hal+json
+
+{ "_links" : {
+    "orders" : {
+      "href" : "http://localhost:8080/orders"
+    },
+    "profile" : {
+      "href" : "http://localhost:8080/api/alps"
+    }
+  }
+}
+----
+
+结果文档的属性本身就是一个对象，由表示具有HAL中指定的嵌套链接对象的关系类型的键组成。
+
+NOTE: 有关 *profile* 链接的详细信息，请参阅<<metadata.alps>>。
+
+[[repository-resources.collection-resource]]
+== 集合资源
+
+Spring Data REST公开一个以导出的存储库正在处理的域类的非大写，复数形式命名的集合资源。可以在存储库接口上使用 `@RepositoryRestResource` 来定制资源名称和路径。
+
+=== 支持的HTTP方法
+
+集合资源支持 `GET` 和 `POST`。所有其他HTTP方法将导致 `405 Method Not Allowed`。
+
+==== GET
+
+通过其 `findAll(…)` 方法返回存储库服务器的所有实体。如果存储库是分页存储库，则在必要时包括分页链接和其他页面元数据。
+
+===== 参数
+
+如果存储库具有分页功能，则资源采用以下参数：
+
+* `page` - 要访问的页码（0索引，默认为0）。
+* `size` - 请求的页面大小（默认为20）。
+* `sort` - 一组格式为 `($propertyname,)+[asc|desc]`? 的排序指令。
+
+===== 自定义状态代码
+
+* `405 Method Not Allowed` - 如果 `findAll(…)` 方法未导出（通过 `@RestResource(exported = false)`）或根本不存在于存储库中。
+
+===== 支持的媒体类型
+
+* application/hal+json
+* application/json
+
+===== 相关资源
+
+* `search` - 支持的存储库公开查询方法时的<<repository-resources.search-resource,搜索资源>>
+
+==== HEAD
+
+返回集合资源是否可用。
+
+==== POST
+
+从给定的请求体创建一个新实体。
+
+===== 自定义状态代码
+
+* `405 Method Not Allowed` - 如果 `save(…)` 方法未导出（通过 `@RestResource(exported = false)`）或根本不存在于存储库中。
+
+===== 支持的媒体类型
+
+* application/hal+json
+* application/json
+
+[[repository-resources.item-resource]]
+== 项目资源
+
+Spring Data REST将单个集合项的资源公开为集合资源的子资源。
+
+=== 支持的HTTP方法
+
+项目资源通常支持 `GET`、`PUT`、`PATCH` 和 `DELETE`，除非显式配置阻止（详见下文）。
+
+==== GET
+
+返回单个实体。
+
+===== 自定义状态代码
+
+* `405 Method Not Allowed` - 如果 `findOne(…)` 方法未导出（通过 `@RestResource(exported = false)`）或根本不存在于存储库中。
+
+===== 支持的媒体类型
+
+* application/hal+json
+* application/json
+
+===== 相关资源
+
+对于域类型的每个关联，我们公开以关联属性命名的链接。这可以通过在属性上使用 `@RestResource` 进行自定义。相关资源属于<<repository-resources.association-resource,关联资源>>类型。
+
+==== HEAD
+
+返回项目资源是否可用。
+
+==== PUT
+
+用提供的请求体替换目标资源的状态。
+
+===== 自定义状态代码
+
+* `405 Method Not Allowed` - 如果 `save(…)` 方法未导出（通过 `@RestResource(exported = false)`）或根本不存在于存储库中。
+
+===== 支持的媒体类型
+
+* application/hal+json
+* application/json
+
+==== PATCH
+
+与 `PUT` 类似，但部分更新??源状态。
+
+===== 自定义状态代码
+
+* `405 Method Not Allowed` - 如果 `save(…)` 方法未导出（通过 `@RestResource(exported = false)`）或根本不存在于存储库中。
+
+===== 支持的媒体类型
+
+* application/hal+json
+* application/json
+* https://tools.ietf.org/html/rfc6902[application/patch+json]
+* https://tools.ietf.org/html/rfc7386[application/merge-patch+json]
+
+==== DELETE
+
+删除公开的资源。
+
+===== 自定义状态代码
+
+* `405 Method Not Allowed` - 如果 `delete(…)` 方法未导出（通过 `@RestResource(exported = false)`）或根本不存在于存储库中。
+
+[[repository-resources.association-resource]]
+== 关联资源
+
+Spring Data REST将项目资源具有的每个关联公开为每个项目资源的子资源。资源的名称和路径默认为关联属性的名称，可以在关联属性上使用 `@RestResource` 进行自定义。
+
+=== 支持的HTTP方法
+
+==== GET
+
+返回关联资源的状态
+
+===== 支持的媒体类型
+
+* application/hal+json
+* application/json
+
+==== PUT
+
+将给定URI指向的资源绑定到资源。
+
+===== 自定义状态代码
+
+* `400 Bad Request` - 如果为对一关联提供了多个URI。
+
+===== 支持的媒体类型
+
+* text/uri-list - 指向要绑定到关联的资源的URI。
+
+==== POST
+
+仅支持集合关联。向集合添加新元素。
+
+===== 支持的媒体类型
+
+* text/uri-list - 指向要添加到关联的资源的URI。
+
+==== DELETE
+
+取消绑定关联。
+
+===== 自定义状态代码
+
+* `405 Method Not Allowed` - 如果关联是非可选的。
+
+[[repository-resources.search-resource]]
+== 搜索资源
+
+搜索资源返回存储库公开的所有查询方法的链接。可以在方法声明上使用 `@RestResource` 修改查询方法资源的路径和名称。
+
+=== 支持的HTTP方法
+
+由于搜索资源是只读资源，因此它仅支持 `GET`。
+
+==== GET
+
+返回指向各个查询方法资源的链接列表
+
+===== 支持的媒体类型
+
+* application/hal+json
+* application/json
+
+===== 相关资源
+
+对于在存储库中声明的每个查询方法，我们公开<<repository-resources.query-method-resource,查询方法资源>>。如果资源支持分页，则指向它的URI将是包含分页参数的URI模板。
+
+==== HEAD
+
+返回搜索资源是否可用。404返回代码表示根本没有可用的查询方法资源。
+
+[[repository-resources.query-method-resource]]
+== 查询方法资源
+
+查询方法资源执行通过存储库接口上的单个查询方法公开的查询。
+
+=== 支持的HTTP方法
+
+由于搜索资源是只读资源，因此它仅支持 `GET`。
+
+==== GET
+
+返回查询执行的结果。
+
+===== 参数
+
+如果查询方法具有分页功能（在指向资源的URI模板中指示），则资源采用以下参数：
+
+* `page` - 要访问的页码（0索引，默认为0）。
+* `size` - 请求的页面大小（默认为20）。
+* `sort` - 一组格式为 `($propertyname,)+[asc|desc]`? 的排序指令。
+
+===== 支持的媒体类型
+
+* application/hal+json
+* application/json
+
+==== HEAD
+
+返回查询方法资源是否可用。
