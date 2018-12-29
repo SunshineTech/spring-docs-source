@@ -985,13 +985,13 @@ class AnAggregateRoot {
 
 http://www.querydsl.com/[Querydsl]是一个框架，可以通过其流畅的API构建静态类型的类SQL查询。
 
-几个Spring Data模块通过 `QueryDslPredicateExecutor` 提供与Querydsl的集成。
+几个Spring Data模块通过 `QuerydslPredicateExecutor` 提供与Querydsl的集成。
 
-.QueryDslPredicateExecutor接口
+.QuerydslPredicateExecutor接口
 ====
 [source, java]
 ----
-public interface QueryDslPredicateExecutor<T> {
+public interface QuerydslPredicateExecutor<T> {
 
   Optional<T> findById(Predicate predicate);  <1>
 
@@ -1010,13 +1010,13 @@ public interface QueryDslPredicateExecutor<T> {
 <4> 返回是否存在与 `Predicate` 匹配的实体。
 ====
 
-要使用Querydsl支持，请在存储库接口上简单地扩展 `QueryDslPredicateExecutor`。
+要使用Querydsl支持，请在存储库接口上简单地扩展 `QuerydslPredicateExecutor`。
 
 .存储库上的Querydsl集成
 ====
 [source, java]
 ----
-interface UserRepository extends CrudRepository<User, Long>, QueryDslPredicateExecutor<User> {
+interface UserRepository extends CrudRepository<User, Long>, QuerydslPredicateExecutor<User> {
 
 }
 ----
@@ -1268,7 +1268,7 @@ QUser.user.firstname.eq("Dave").and(QUser.user.lastname.eq("Matthews"))
 
 NOTE: 当在类路径中找到Querydsl时，该功能将与 `@EnableSpringDataWebSupport` 一起自动启用。
 
-向方法签名添加 `@QuerydslPredicate` 可提供随时可用的可以通过 `QueryDslPredicateExecutor` 运行的 `Predicate`。
+向方法签名添加 `@QuerydslPredicate` 可提供随时可用的可以通过 `QuerydslPredicateExecutor` 运行的 `Predicate`。
 
 TIP: 通常从方法的返回类型中解析类型信息。由于那些信息不一定与域类型匹配，因此使用 `QuerydslPredicate` 的 `root` 属性可能是个好主意。
 
@@ -1305,7 +1305,7 @@ class UserController {
 [source,java]
 ----
 interface UserRepository extends CrudRepository<User, String>,
-                                 QueryDslPredicateExecutor<User>,                <1>
+                                 QuerydslPredicateExecutor<User>,                <1>
                                  QuerydslBinderCustomizer<QUser> {               <2>
 
   @Override
@@ -1318,7 +1318,7 @@ interface UserRepository extends CrudRepository<User, String>,
   }
 }
 ----
-<1> `QueryDslPredicateExecutor` 提供对 `Predicate` 的特定finder方法的访问。
+<1> `QuerydslPredicateExecutor` 提供对 `Predicate` 的特定finder方法的访问。
 <2> 定义在存储库接口上的 `QuerydslBinderCustomizer` 将被自动选择并简化为 `@QuerydslPredicate(bindings=...)`。
 <3> 将 `username` 属性的绑定定义为简单的contains绑定。
 <4> 将 `String` 属性的默认绑定定义为不区分大小写的contains匹配。
