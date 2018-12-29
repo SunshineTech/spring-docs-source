@@ -5,14 +5,14 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-commons</artifactId>
-	<version>2.0.0.RELEASE</version>
+	<version>2.0.1.RELEASE</version>
 
 	<name>Spring Data Core</name>
 
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>2.0.0.RELEASE</version>
+		<version>2.0.1.RELEASE</version>
 	</parent>
 
 	<properties>
@@ -394,8 +394,8 @@
             	<sourceHighlighter>prettify</sourceHighlighter>
             	<attributes>
             		<version>${project.version}</version>
-            		<releasetrainVersion>Kay-RELEASE</releasetrainVersion>
-            		<springVersion>5.0.0.RELEASE</springVersion>
+            		<releasetrainVersion>Kay-SR1</releasetrainVersion>
+            		<springVersion>5.0.1.RELEASE</springVersion>
             	</attributes>
           	</configuration>
         	</execution>

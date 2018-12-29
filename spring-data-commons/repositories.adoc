@@ -1,4 +1,5 @@
 :spring-framework-docs: http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/
+:spring-framework-javadoc: https://docs.spring.io/spring/docs/{springVersion}/javadoc-api
 
 [[repositories]]
 = 使用Spring Data存储库
@@ -23,21 +24,21 @@ Spring Data存储库抽象中的中央接口是 `Repository`（可能不是那�
 [source, java]
 ----
 public interface CrudRepository<T, ID extends Serializable>
-    extends Repository<T, ID> {
+  extends Repository<T, ID> {
 
-    <S extends T> S save(S entity); <1>
+  <S extends T> S save(S entity);      <1>
 
-    T findOne(ID primaryKey);       <2>
+  Optional<T> findById(ID primaryKey); <2>
 
-    Iterable<T> findAll();          <3>
+  Iterable<T> findAll();               <3>
 
-    Long count();                   <4>
+  long count();                        <4>
 
-    void delete(T entity);          <5>
+  void delete(T entity);               <5>
 
-    boolean exists(ID primaryKey);  <6>
+  boolean existsById(ID primaryKey);   <6>
 
-    // ...省略了更多功能。
+  // ...省略了更多功能。
 }
 ----
 <1> 保存给定的实体。
@@ -80,9 +81,9 @@ Page<User> users = repository.findAll(new PageRequest(1, 20));
 ====
 [source, java]
 ----
-public interface UserRepository extends CrudRepository<User, Long> {
+interface UserRepository extends CrudRepository<User, Long> {
 
-  Long countByLastname(String lastname);
+  long countByLastname(String lastname);
 }
 ----
 ====
@@ -91,9 +92,9 @@ public interface UserRepository extends CrudRepository<User, Long> {
 ====
 [source, java]
 ----
-public interface UserRepository extends CrudRepository<User, Long> {
+interface UserRepository extends CrudRepository<User, Long> {
 
-  Long deleteByLastname(String lastname);
+  long deleteByLastname(String lastname);
 
   List<User> removeByLastname(String lastname);
 
@@ -165,12 +166,15 @@ class Config {}
 
 [source, java]
 ----
-public class SomeClient {
+class SomeClient {
 
-  @Autowired
-  private PersonRepository repository;
+  private final PersonRepository repository;
 
-  public void doSomething() {
+  SomeClient(PersonRepository repository) {
+    this.repository = repository;
+  }
+
+  void doSomething() {
     List<Person> persons = repository.findByLastname("Matthews");
   }
 }
@@ -198,9 +202,9 @@ NOTE: 这允许您在提供的Spring Data Repositories功能之上定义自己�
 @NoRepositoryBean
 interface MyBaseRepository<T, ID extends Serializable> extends Repository<T, ID> {
 
-  T findOne(ID id);
+  Optional<T> findById(ID id);
 
-  T save(T entity);
+  <S extends T> S save(S entity);
 }
 
 interface UserRepository extends MyBaseRepository<User, Long> {
@@ -209,11 +213,94 @@ interface UserRepository extends MyBaseRepository<User, Long> {
 ----
 ====
 
-在第一步中，您为所有域存储库定义了一个公共基本接口，并公开了 `findOne(…)` 以及 `save(…)`。这些方法被路由到Spring Data提供的您所选存储的基本存储库实现中（例如，如果使用JPA，那么实现是 `SimpleJpaRepository`），因为它们匹配 `CrudRepository` 中的方法签名。
+在第一步中，您为所有域存储库定义了一个公共基本接口，并公开了 `findById(…)` 以及 `save(…)`。这些方法被路由到Spring Data提供的您所选存储的基本存储库实现中（例如，如果使用JPA，那么实现是 `SimpleJpaRepository`），因为它们匹配 `CrudRepository` 中的方法签名。
 因此，`UserRepository` 现在可以保存用户，并通过id查找单个用户，以及触发查询以通过其电子邮件地址查找 `Users`。
 
 NOTE: 中间存储库接口使用 `@NoRepositoryBean` 注解。确保将该注解添加到Spring Data不应在运行时创建实例的所有存储库接口。
 
+
+[[repositories.nullability]]
+=== 存储库方法的Null处理
+
+从Spring Data 2.0开始，返回单个聚合实例的存储库CRUD方法使用Java 8的 `Optional` 来指示可能缺少值。除此之外，Spring Data支持在查询方法上返回以下包装类型：
+
+* `com.google.common.base.Optional`
+* `scala.Option`
+* `io.vavr.control.Option`
+* `javaslang.control.Option`（随着Javaslang废弃而废弃）
+
+或者，查询方法可以选择根本不使用包装类型。然后通过返回 `null` 来指示缺少查询结果。返回集合，集合替代，包装器和流的存储库方法保证永远不会返回 `null`，而是返回相应的空表示。
+有关详细信息，请参阅<<repository-query-return-types>>。
+
+[[repositories.nullability.annotations]]
+==== 可空性注解
+
+您可以使用link:{spring-framework-docs}/core.html#null-safety[Spring框架的可空性注解]表达存储库方法的可空性约束 。它们提供了一种工具友好的方法，并在运行时选择 `null` 检查：
+
+* {spring-framework-javadoc}/org/springframework/lang/NonNullApi.html[`@NonNullApi`] – 在包级别上使用，声明参数和返回值的默认行为是不接受或生成 `null` 值。
+* {spring-framework-javadoc}/org/springframework/lang/NonNull.html[`@NonNull`] – 用于不得为 `null` 的参数或返回值（应用 `@NonNullApi` 的包的参数或返回值不需要）。
+* {spring-framework-javadoc}/org/springframework/lang/Nullable.html[`@Nullable`] – 用于可为 `null` 的参数或返回值。
+
+Spring注解是使用 https://jcp.org/en/jsr/detail?id=305[JSR 305]注解（一种休眠但广泛传播的JSR）进行元注释的。
+JSR 305元注解允许工具供应商，如 https://www.jetbrains.com/help/idea/nullable-and-notnull-annotations.html[IDEA]、http://help.eclipse.org/oxygen/index.jsp?topic=/org.eclipse.jdt.doc.user/tasks/task-using_external_null_annotations.htm[Eclipse]或link:https://kotlinlang.org/docs/reference/java-interop.html#null-safety-and-platform-types[Kotlin]以通用方式提供null安全支持，而无需硬编码支持Spring注解。
+要为查询方法启用运行时可空性约束检查，需要在 `package-info.java` 中使用Spring的 `@NonNullApi` 来激活包级别的非可空性：
+
+.在 `package-info.java` 中声明非可空性
+====
+[source, java]
+----
+@org.springframework.lang.NonNullApi
+package com.acme;
+----
+====
+
+一旦存在非空默认，就会在运行时验证存储库查询方法调用的可空性约束。如果查询执行结果违反了定义的约束，则抛出异常；即方法由于某些原因会返回 `null` 但声明为非可空（在存储库所在的包上使用注解默认定义的）。
+如果您想再次选择可空的结果，请在方法上有选择地使用 `@Nullable`。使用上述结果包装器类型将继续按预期工作，即空结果将被转换为表示缺少的值。
+
+.使用不同的可空性约束
+====
+[source, java]
+----
+package com.acme;                                                       <1>
+
+import org.springframework.lang.Nullable;
+
+interface UserRepository extends Repository<User, Long> {
+
+  User getByEmailAddress(EmailAddress emailAddress);                    <2>
+
+  @Nullable
+  User findByEmailAddress(@Nullable EmailAddress emailAdress);          <3>
+
+  Optional<User> findOptionalByEmailAddress(EmailAddress emailAddress); <4>
+}
+----
+<1> 存储库在我们已定义非空行为的包（或子包）中。
+<2> 当执行的查询未产生结果时，将抛出 `EmptyResultDataAccessException`。当传递给方法的 `emailAddress` 为 `null` 时，将抛出 `IllegalArgumentException`。
+<3> 当执行的查询未产生结果时，将返回 `null`。还接受 `null` 作为 `emailAddress` 的值。
+<4> 当执行的查询未产生结果时，将返回 `Optional.empty()`。当传递给该方法的 `emailAddress` 为 `null` 时，将抛出 `IllegalArgumentException`。
+====
+
+[[repositories.nullability.kotlin]]
+==== 基于Kotlin存储库的可空性
+
+Kotlin具有烤入该语言中的 https://kotlinlang.org/docs/reference/null-safety.html[可空性约束定义]。Kotlin代码编译为字节码，它不使用方法签名而是编译进的元数据表达可空性约束。
+确保在项目中包含 `kotlin-reflect` JAR，以便启用Kotlin的可空性约束内省。Spring Data存储库使用语言机制来定义这些约束以应用相同的运行时检查：
+
+.在Kotlin存储库上使用可空性约束
+====
+[source, kotlin]
+----
+interface UserRepository : Repository<User, String> {
+
+  fun findByUsername(username: String): User     <1>
+
+  fun findByFirstname(firstname: String?): User? <2>
+}
+----
+<1> 该方法将参数和结果都定义为非可空（Kotlin默认值）。Kotlin编译器拒绝将 `null` 传递给该方法的方法调用。如果查询执行产生空结果，将抛出 `EmptyResultDataAccessException`。
+<2> 此方法接受 `null` 作为 `firstname` 的参数，如果查询执行未产生结果，则返回 `null`。
+====
 
 [[repositories.multiple-modules]]
 === 使用具有多个Spring Data模块的存储库
@@ -274,7 +361,7 @@ interface PersonRepository extends Repository<Person, Long> {
 }
 
 @Entity
-public class Person {
+class Person {
   …
 }
 
@@ -283,7 +370,7 @@ interface UserRepository extends Repository<User, Long> {
 }
 
 @Document
-public class User {
+class User {
   …
 }
 ----
@@ -304,7 +391,7 @@ interface MongoDBPersonRepository extends Repository<Person, Long> {
 
 @Entity
 @Document
-public class Person {
+class Person {
   …
 }
 ----
@@ -358,7 +445,7 @@ interface Configuration { }
 ====
 [source, java]
 ----
-public interface PersonRepository extends Repository<User, Long> {
+interface PersonRepository extends Repository<User, Long> {
 
   List<Person> findByEmailAddressAndLastname(EmailAddress emailAddress, String lastname);
 
@@ -503,7 +590,7 @@ NOTE: 并非所有Spring Data模块当前都支持 `Stream<T>` 作为返回类�
 [[repositories.query-async]]
 === 异步查询结果
 
-可以使用link:{spring-framework-docs}integration.html#scheduling[Spring的异步方法执行异步能力]异步执行存储库查询。这意味着该方法在调用时立即返回，而实际查询执行发生在已提交给Spring TaskExecutor的任务中。
+可以使用link:{spring-framework-docs}/integration.html#scheduling[Spring的异步方法执行异步能力]异步执行存储库查询。这意味着该方法在调用时立即返回，而实际查询执行发生在已提交给Spring TaskExecutor的任务中。
 
 ====
 [source, java]
@@ -586,7 +673,7 @@ ListenableFuture<User> findOneByLastname(String lastname);    <3>
 class ApplicationConfiguration {
 
   @Bean
-  public EntityManagerFactory entityManagerFactory() {
+  EntityManagerFactory entityManagerFactory() {
     // …
   }
 }
@@ -624,7 +711,7 @@ UserRepository repository = factory.getRepository(UserRepository.class);
 [source, java]
 ----
 interface CustomizedUserRepository {
-  public void someCustomMethod(User user);
+  void someCustomMethod(User user);
 }
 ----
 ====
@@ -813,12 +900,12 @@ class CustomizedUserRepositoryImpl implements CustomizedUserRepository {
 ====
 [source, java]
 ----
-public class MyRepositoryImpl<T, ID extends Serializable>
+class MyRepositoryImpl<T, ID extends Serializable>
   extends SimpleJpaRepository<T, ID> {
 
   private final EntityManager entityManager;
 
-  public MyRepositoryImpl(JpaEntityInformation entityInformation,
+  MyRepositoryImpl(JpaEntityInformation entityInformation,
                           EntityManager entityManager) {
     super(entityInformation, entityManager);
 
@@ -887,69 +974,6 @@ class AnAggregateRoot {
 
 每次调用Spring Data存储库的其中一个 `save(…)` 方法时，都会调用这些方法。
 
-[[core.nullability-validation]]
-== 空安全
-
-存储库方法让您提高空安全性，以便在编译时处理 `null` 值，而不是在运行时碰到著名的 `NullPointerException`。
-这使得您的应用程序通过干净的可空性声明更安全，表达“有值或无值”的语义，而无需支付像 `Optional` 这样的包装器的成本。
-
-您可以使用Spring框架注解来表示空安全存储库方法。它们提供了工具友好的方法，并在运行时选择 `null` 检查：
-
-* 包级别的 `@NonNullApi` 注解声明非null为默认行为
-
-* `@Nullable` 注解，其中特定参数或返回值可以为 `null`。
-
-使用 https://jcp.org/en/jsr/detail?id=305[JSR-305]元注解（一个休眠的JSR，但是由IDEA，Eclipse，Findbugs等工具支持）进行元注解的这两个注解为Java开发人员提供有用的警告。
-
-如果您打算使用自己的元注解，请确保在类路径中包含一个包含JSR-305的 `@Nonnull` 注解的JAR文件。
-
-NOTE: 在运行时验证在包级别或使用Kotlin声明的null声明范围内的存储库查询方法的调用。将 `null` 值传递给不可为空的查询方法参数将被拒绝，会出现异常。
-不产生结果且不可为空的查询方法抛出 `EmptyResultDataAccessException` 而不是返回 `null`。
-
-.激活包的非null默认值
-====
-[source, java]
-----
-@org.springframework.lang.NonNullApi
-package com.example;
-----
-====
-
-.声明参数和返回值的可为空性
-====
-[source, java]
-----
-package com.example;                                                   <1>
-
-interface UserRepository extends Repository<User, String> {
-
-  List<User> findByLastname(@Nullable String firstname);               <2>
-
-  @Nullable
-  User findByFirstnameAndLastname(String firstname, String lastname);  <3>
-}
-----
-<1> 包级别上的 `@NonNullApi` 声明此包中的所有API都默认为非空。
-<2> `@Nullable` 允许在特定参数上使用 `null`。 必须注解每个可空参数。
-<3> `@Nullable` 注解的方法可能返回 `null`。
-====
-
-如果您使用Kotlin声明存储库接口，那么您可以使用Kotlin的 https://kotlinlang.org/docs/reference/null-safety.html[空安全]来表达可空性。
-
-.在Kotlin中声明参数和返回值的可为空性
-====
-[source, java]
-----
-interface UserRepository : Repository<User, String> {
-
-  fun findByLastname(username: String?): List<User>
-
-  fun findByFirstnameAndLastname(firstname: String, lastname: String): User?
-}
-----
-====
-
-NOTE: Kotlin代码编译为字节码，它不使用方法签名表示可空性声明，而是使用编译的元数据。确保包含 `kotlin-reflect` 以便能够对Kotlin的可空性声明进行内省。
 
 [[core.extensions]]
 == Spring Data扩展
@@ -969,15 +993,15 @@ http://www.querydsl.com/[Querydsl]是一个框架，可以通过其流畅的API�
 ----
 public interface QueryDslPredicateExecutor<T> {
 
-    T findOne(Predicate predicate);             <1>
+  Optional<T> findById(Predicate predicate);  <1>
 
-    Iterable<T> findAll(Predicate predicate);   <2>
+  Iterable<T> findAll(Predicate predicate);   <2>
 
-    long count(Predicate predicate);            <3>
+  long count(Predicate predicate);            <3>
 
-    boolean exists(Predicate predicate);        <4>
+  boolean exists(Predicate predicate);        <4>
 
-    // … more functionality omitted.
+  // … more functionality omitted.
 }
 ----
 <1> 查找并返回与 `Predicate` 匹配的单个实体。
@@ -1022,7 +1046,7 @@ NOTE: 本节包含Spring Data的Web支持文档，因为它是从1.6范围内的
 @Configuration
 @EnableWebMvc
 @EnableSpringDataWebSupport
-class WebConfiguration { }
+class WebConfiguration {}
 ----
 ====
 
@@ -1058,10 +1082,10 @@ class WebConfiguration { }
 ----
 @Controller
 @RequestMapping("/users")
-public class UserController {
+class UserController {
 
   @RequestMapping("/{id}")
-  public String showUserForm(@PathVariable("id") User user, Model model) {
+  String showUserForm(@PathVariable("id") User user, Model model) {
 
     model.addAttribute("user", user);
     return "userForm";
@@ -1070,7 +1094,7 @@ public class UserController {
 ----
 ====
 
-如您所见，该方法直接接收User实例，无需进一步查找。可以通过让Spring MVC首先将路径变量转换为该域类的id类型来解析实例，并最终通过在注册为该域类型的存储库实例上调用 `findOne(…)` 来访问该实例。
+如您所见，该方法直接接收User实例，无需进一步查找。可以通过让Spring MVC首先将路径变量转换为该域类的id类型来解析实例，并最终通过在注册为该域类型的存储库实例上调用 `findById(…)` 来访问该实例。
 
 NOTE: 目前，存储库必须实现 `CrudRepository` 才有资格被发现进行转换。
 
@@ -1084,12 +1108,16 @@ NOTE: 目前，存储库必须实现 `CrudRepository` 才有资格被发现进�
 ----
 @Controller
 @RequestMapping("/users")
-public class UserController {
+class UserController {
 
-  @Autowired UserRepository repository;
+  private final UserRepository repository;
+  
+  UserController(UserRepository repository) {
+    this.repository = repository;
+  }
 
   @RequestMapping
-  public String showUsers(Model model, Pageable pageable) {
+  String showUsers(Model model, Pageable pageable) {
 
     model.addAttribute("users", repository.findAll(pageable));
     return "users";
@@ -1123,14 +1151,14 @@ public class UserController {
 
 [source, java]
 ----
-public String showUsers(Model model,
+String showUsers(Model model,
       @Qualifier("foo") Pageable first,
       @Qualifier("bar") Pageable second) { … }
 ----
 
 你必须填充 `foo_page` 和 `bar_page` 等。
 
-传递给方法的默认 `Pageable` 等同于 `new PageRequest(0, 20)`，但可以在 `Pageable` 参数上使用 `@PageableDefaults` 注解进行自定义。
+传递给方法的默认 `Pageable` 等同于 `new PageRequest(0, 20)`，但可以在 `Pageable` 参数上使用 `@PageableDefault` 注解进行自定义。
 
 [[core.web.pageables]]
 ==== 对Pageables的超媒体支持
@@ -1247,7 +1275,7 @@ interface UserRepository extends CrudRepository<User, String>,
                                  QuerydslBinderCustomizer<QUser> {               <2>
 
   @Override
-  default public void customize(QuerydslBindings bindings, QUser user) {
+  default void customize(QuerydslBindings bindings, QUser user) {
 
     bindings.bind(user.username).first((path, value) -> path.contains(value))    <3>
     bindings.bind(String.class)
@@ -1348,21 +1376,20 @@ interface UserRepository extends CrudRepository<User, String>,
 ----
 @Controller
 @RequestMapping("/users")
-public class UserController {
+class UserController {
 
   private final UserRepository userRepository;
 
-  @Autowired
-  public UserController(UserRepository userRepository) {
+  UserController(UserRepository userRepository) {
     Assert.notNull(repository, "Repository must not be null!");
     this.userRepository = userRepository;
   }
 
   @RequestMapping("/{id}")
-  public String showUserForm(@PathVariable("id") Long id, Model model) {
+  String showUserForm(@PathVariable("id") Long id, Model model) {
 
     // 执行id的空检查
-    User user = userRepository.findOne(id);
+    User user = userRepository.findById(id);
     // 执行user的空检查
 
     model.addAttribute("user", user);
@@ -1371,7 +1398,7 @@ public class UserController {
 }
 ----
 
-首先，为每个控制器声明存储库依赖，以分别查找由控制器或存储库管理的实体。查找实体也是样板文件，因为它总是 `findOne(…)` 调用。幸运的是，Spring提供了注册自定义组件的方法，这些组件允许将 `String` 值转换为任意类型。
+首先，为每个控制器声明存储库依赖，以分别查找由控制器或存储库管理的实体。查找实体也是样板文件，因为它总是 `findById(…)` 调用。幸运的是，Spring提供了注册自定义组件的方法，这些组件允许将 `String` 值转换为任意类型。
 
 [[web.legacy.property-editors]]
 ===== PropertyEditors
@@ -1397,10 +1424,10 @@ public class UserController {
 ----
 @Controller
 @RequestMapping("/users")
-public class UserController {
+class UserController {
 
   @RequestMapping("/{id}")
-  public String showUserForm(@PathVariable("id") User user, Model model) {
+  String showUserForm(@PathVariable("id") User user, Model model) {
 
     model.addAttribute("user", user);
     return "userForm";
