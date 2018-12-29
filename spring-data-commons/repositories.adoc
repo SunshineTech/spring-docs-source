@@ -1070,7 +1070,7 @@ class WebConfiguration {}
 上面显示的配置设置将注册一些基本组件：
 
 - `DomainClassConverter` 让Spring MVC从请求参数或路径变量解析存储库管理的域类实例。
-- `HandlerMethodArgumentResolver` 实现让Spring MVC从请求参数解析Pageable和Sort实例。
+- `HandlerMethodArgumentResolver` 实现让Spring MVC从请求参数解析 `Pageable` 和 `Sort` 实例。
 
 [[core.web.basic.domain-class-converter]]
 ===== DomainClassConverter
@@ -1212,6 +1212,40 @@ class PersonController {
 
 您会看到assembler生成了正确的URI，并且还选择了默认配置以将即将请求的参数解析为 `Pageable`。这意味着，如果更改该配置，链接将自动遵循更改。
 默认情况下，assembler指向调用它的控制器方法，但是可以通过交换自定义 `Link` 来定制，以用作构建分页链接的基础，这会重载 `PagedResourcesAssembler.toResource(…)` 方法。
+
+[[core.web.binding]]
+==== Web数据绑定支持
+
+Spring Data投影（一般在<<projections>>中描述）可用于通过使用 http://goessner.net/articles/JsonPath/[JSONPath]表达式（需要 https://github.com/json-path/JsonPath[Jayway JasonPath]）或 https://www.w3.org/TR/xpath-31/[XPath]表达式（需要 https://xmlbeam.org/[XmlBeam]）来绑定传入的请求有效负载。
+
+.使用JSONPath或XPath表达式绑定HTTP有效负载
+====
+[source, java]
+----
+@ProjectedPayload
+public interface UserPayload {
+
+  @XBRead("//firstname")
+  @JsonPath("$..firstname")
+  String getFirstname();
+
+  @XBRead("/lastname")
+  @JsonPath({ "$.lastname", "$.user.lastname" })
+  String getLastname();
+}
+----
+====
+
+上面的类型可以用作Spring MVC处理器方法参数，也可以在 `RestTemplate` 的方法之一上使用 `ParameterizedTypeReference`。上面方法声明将尝试在给定文档中的任何位置查找 `firstname`。
+`lastname` XML查找在传入文档的顶层执行。其中的JSON变种首先尝试顶级 `lastname`，但如果前者未返回值，则还尝试嵌套在 `user` 子文档中的 `lastname`。
+如果源文档的结构可以很容易地减轻，而不必接触调用公开方法的客户端（通常是基于类的有效负载绑定的缺点），那么这种方式就会改变。
+
+支持嵌套投影，如<<projections>>中所述。如果方法返回复杂的非接口类型，则使用 `ObjectMapper` 来映射最终值。
+
+对于Spring MVC，只要 `@EnableSpringDataWebSupport` 激活并且类路径上所需的依赖可用，就会自动注册必要的转换器。
+要与 `RestTemplate` 一起使用，请手动注册 `ProjectingJackson2HttpMessageConverter`（JSON）或 `XmlBeamHttpMessageConverter`。
+
+有关更多信息，请参阅规范 https://github.com/spring-projects/spring-data-examples[Spring Data示例存储库]中的 https://github.com/spring-projects/spring-data-examples/tree/master/web/projection[web投影示例]。
 
 [[core.web.type-safe]]
 ==== Querydsl Web支持
