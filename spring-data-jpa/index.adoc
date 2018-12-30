@@ -1,7 +1,7 @@
 = Spring Data JPA - 参考文档
 Oliver Gierke; Thomas Darimont; Christoph Strobl; Mark Paluch
 :revnumber: {version}
-:revdate: 2018-01-24
+:revdate: 2018-04-04
 :doctype: book
 :docinfo: shared
 :toc-title: 目录
