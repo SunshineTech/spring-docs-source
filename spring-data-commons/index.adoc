@@ -1,7 +1,7 @@
 = Spring Data Commons - 参考文档
 Oliver Gierke; Thomas Darimont; Christoph Strobl; Mark Pollack; Thomas Risberg; Mark Paluch; Jay Bryant;
 :revnumber: {version}
-:revdate: 2018-05-08
+:revdate: {revdate}
 :doctype: book
 :docinfo: shared
 :toc-title: 目录
