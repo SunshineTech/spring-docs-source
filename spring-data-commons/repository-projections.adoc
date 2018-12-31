@@ -1,9 +1,9 @@
 [[projections]]
 = 投影
 
-Spring Data查询方法通常返回由存储库管理的聚合根的一个或多个实例。但是，有时在这些类型的某些属性上投影是可取的。Spring Data允许建模专用返回类型，以更有选择地检索托管聚合的部分视图。
+Spring Data查询方法通常返回由存储库管理的聚合根的一个或多个实例。但是，有时可能需要根据这些类型的某些属性创建投影。Spring Data允许建模专用返回类型，以更有选择地检索托管聚合的部分视图。
 
-想象一个像这样示例存储库和聚合根类型：
+想象一下存储库和聚合根类型，例如下例：
 
 .示例聚合和存储库
 ====
@@ -27,12 +27,12 @@ interface PersonRepository extends Repository<Person, UUID> {
 ----
 ====
 
-现在假设我们只想检索人的姓名属性。Spring Data提供了什么方法来实现这一目标？
+现在假设我们只想检索人的姓名属性。Spring Data提供了什么方法来实现这一目标？本章的其余部分回答这个问题。
 
 [[projections.interfaces]]
 == 基于接口的投影
 
-将查询结果限制为仅公开名称属性的最简单方法是声明一个接口，该接口公开要读取的属性的访问器方法：
+将查询结果限制为仅名称属性的最简单方法是声明一个接口，该接口公开要读取的属性的访问器方法，如下例所示：
 
 .检索属性子集的投影接口
 ====
@@ -46,7 +46,7 @@ interface NamesOnly {
 ----
 ====
 
-这里重要的一点是，此处定义的属性与聚合根中的属性完全匹配。这样做可以添加像这样的查询方法：
+这里重要的一点是，此处定义的属性与聚合根中的属性完全匹配。这样做可以添加查询方法，如下所示：
 
 .使用基于接口的投影和查询方法的存储库
 ====
@@ -62,7 +62,7 @@ interface PersonRepository extends Repository<Person, UUID> {
 查询执行引擎在运行时为返回的每个元素创建该接口的代理实例，并将对暴露方法的调用转发给目标对象。
 
 [[projections.interfaces.nested]]
-投影可以递归使用。如果要包含一些 `Address` 信息，请为此创建一个投影接口，并从 `getAddress()` 的声明中返回该接口。
+投影可以递归使用。如果要包含一些 `Address` 信息，请为此创建一个投影接口，并从 `getAddress()` 的声明中返回该接口，如下例所示：
 
 .检索属性子集的投影接口
 ====
@@ -86,7 +86,7 @@ interface PersonSummary {
 [[projections.interfaces.closed]]
 === 封闭投影
 
-其访问器方法都与目标聚合的属性匹配的投影接口被视为封闭投影。
+其访问器方法都与目标聚合的属性匹配的投影接口被视为封闭投影。下例（我们在本章前面也使用过）是一个封闭的投影：
 
 .封闭投影
 ====
@@ -105,7 +105,7 @@ interface NamesOnly {
 [[projections.interfaces.open]]
 === 开放投影
 
-投影接口中的访问器方法也可以通过使用 `@Value` 注解来计算新值：
+投影接口中的访问器方法也可以通过使用 `@Value` 注解来计算新值，如下例所示：
 
 [[projections.interfaces.open.simple]]
 .开放投影
@@ -121,9 +121,9 @@ interface NamesOnly {
 ----
 ====
 
-支持投影的聚合根可以通过 `target` 变量获得。使用 `@Value` 的投影接口是开放投影。在这种情况下，Spring Data无法应用查询执行优化，因为SpEL表达式可以使用聚合根的任何属性。
+支持投影的聚合根在 `target` 变量中可用。使用 `@Value` 的投影接口是开放投影。在这种情况下，Spring Data无法应用查询执行优化，因为SpEL表达式可以使用聚合根的任何属性。
 
-`@Value` 中使用的表达式不应该太复杂，因为您希望避免 ``String`` 中编程。对于非常简单的表达式，一个选项可能是采用默认方法：
+`@Value` 中使用的表达式不应该太复杂 - 您想避免在 `String` 变量中编程。对于非常简单的表达式，一个选项可能是采用默认方法（Java 8中引入），如下例所示：
 
 [[projections.interfaces.open.default]]
 .使用自定义逻辑的默认方法的投影接口
@@ -142,7 +142,7 @@ interface NamesOnly {
 ----
 ====
 
-这种方法要求您能够纯粹基于投影接口上公开的其他访问器方法实现逻辑。第二个更灵活的选项是在Spring bean中实现自定义逻辑，然后从SpEL表达式简单调用：
+这种方法要求您能够纯粹基于投影接口上公开的其他访问器方法实现逻辑。第二个更灵活的选项是在Spring bean中实现自定义逻辑，然后从SpEL表达式简单调用，如下例所示：
 
 [[projections.interfaces.open.bean-reference]]
 .示例Person对象
@@ -167,7 +167,7 @@ interface NamesOnly {
 ====
 
 注意SpEL表达式如何引用 `myBean` 并调用 `getFullName(…)` 方法将投影目标转发为方法参数。由SpEL表达式评估支持的方法也可以使用然后可以从表达式引用的方法参数。
-方法参数可通过名为 `args` 的 `Object` 数组获得。
+方法参数可通过名为 `args` 的 `Object` 数组获得。下例显示如何从 `args` 数组获取方法参数：
 
 .示例Person对象
 ====
@@ -181,14 +181,16 @@ interface NamesOnly {
 ----
 ====
 
-同样，对于更复杂的表达式，应该使用Spring bean并让表达式只调用如<<projections.interfaces.open.bean-reference,上>>所述的方法。
+同样，对于更复杂的表达式，应该使用Spring bean并让表达式只调用如<<projections.interfaces.open.bean-reference,较早>>所述的方法。
 
 [[projections.dtos]]
 == 基于类的投影（DTO）
 
-定义投影的另一种方法是使用包含应该检索字段属性的值类型DTO。这些DTO类型可以与投影接口完全相同的方式使用，除了不发生代理并且不能应用嵌套投影。
+定义投影的另一种方法是使用值类型DTO（数据传输对象），它包含应该检索的字段的属性。这些DTO类型可以与投影接口完全相同的方式使用，除了不发生代理并且不能应用嵌套投影。
 
 如果存储通过限制要加载的字段来优化查询执行，则要加载的字段将根据公开的构造函数的参数名称确定。
+
+下例显示了一个投影DTO：
 
 .投影DTO
 ====
@@ -220,7 +222,8 @@ class NamesOnly {
 [TIP]
 .避免投影DTO的样板代码
 ====
-使用 https://projectlombok.org[Project Lombok]可以大大简化需要为DTO编写的代码，它提供了 `@Value` 注解（不要与上面接口示例中显示的Spring的 `@Value` 注解混淆）。上面的示例DTO将变为：
+您可以使用 https://projectlombok.org[Project Lombok]大大简化DTO的代码，它提供了一个 `@Value` 注解（不要与早期接口示例中显示的Spring `@ Value` 注解混淆）。
+如果使用Project Lombok的 `@Value` 注解，早期显示的示例DTO将变为以下内容：
 
 [source, java]
 ----
@@ -229,14 +232,14 @@ class NamesOnly {
 	String firstname, lastname;
 }
 ----
-字段默认是private final，该类公开了一个接受所有字段的构造函数，并自动获取 `equals(…)` 和 `hashCode()` 方法实现。
+字段默认是 `private final`，该类公开了一个接受所有字段的构造函数，并自动获取 `equals(…)` 和 `hashCode()` 方法实现。
 
 ====
 
 [[projection.dynamic]]
 == 动态投影
 
-到目前为止，我们已经使用投影类型作为集合的返回类型或元素类型。但是，您可能希望选择在调用时使用的类型。要应用动态投影，请使用像这样的查询方法：
+到目前为止，我们已经使用投影类型作为集合的返回类型或元素类型。但是，您可能希望选择要在调用时使用的类型（这使其动态）。要应用动态投影，请使用查询方法，如下例中所示：
 
 .使用动态投影参数的存储库
 ====
@@ -244,12 +247,12 @@ class NamesOnly {
 ----
 interface PersonRepository extends Repository<Person, UUID> {
 
-  Collection<T> findByLastname(String lastname, Class<T> type);
+  <T> Collection<T> findByLastname(String lastname, Class<T> type);
 }
 ----
 ====
 
-这样，该方法可用于按原样或应用投影获取聚合：
+这样，该方法可用于按原样或应用投影获取聚合，如下例所示：
 
 .使用动态投影的存储库
 ====

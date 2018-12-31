@@ -3,11 +3,10 @@
 Spring Data Commons项目将核心Spring概念应用于使用许多关系和非关系数据存储的解决方案的开发。
 
 [[project]]
-[preface]
 == 项目元数据
 
-* 版本控制 - http://github.com/spring-projects/spring-data-commons
-* 错误追踪系统 - https://jira.spring.io/browse/DATACMNS
-* 发布存储库 - https://repo.spring.io/libs-release
-* 里程碑存储库 - https://repo.spring.io/libs-milestone
-* 快照存储库 - https://repo.spring.io/libs-snapshot
+* 版本控制：http://github.com/spring-projects/spring-data-commons
+* 错误追踪系统：https://jira.spring.io/browse/DATACMNS
+* 发布存储库：https://repo.spring.io/libs-release
+* 里程碑存储库：https://repo.spring.io/libs-milestone
+* 快照存储库：https://repo.spring.io/libs-snapshot

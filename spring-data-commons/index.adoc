@@ -1,7 +1,7 @@
 = Spring Data Commons - 参考文档
-Oliver Gierke; Thomas Darimont; Christoph Strobl; Mark Pollack; Thomas Risberg; Mark Paluch;
+Oliver Gierke; Thomas Darimont; Christoph Strobl; Mark Pollack; Thomas Risberg; Mark Paluch; Jay Bryant;
 :revnumber: {version}
-:revdate: 2018-04-04
+:revdate: 2018-05-08
 :doctype: book
 :docinfo: shared
 :toc-title: 目录
@@ -13,7 +13,7 @@ Oliver Gierke; Thomas Darimont; Christoph Strobl; Mark Pollack; Thomas Risberg; 
 :stylesheet: spring.css
 :stylesdir: css
 
-(C) 2008-2017 The original authors.
+(C) 2008-2018 The original authors.
 
 NOTE: 本文档的副本可以供您自己使用并分发给他人，前提是您不对此类副本收取任何费用，并且只要每份副本包含此版权声明，无论是以印刷版还是电子版分发。
 

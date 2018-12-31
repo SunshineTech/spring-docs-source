@@ -26,7 +26,7 @@ class Customer {
 ----
 ====
 
-如您所见，可以有选择地应用注解，具体取决于您要捕获的信息。对于捕获时间点的注解，可以使用JodaTimes `DateTime`，遗留的Java `Date` 和 `Calendar`，JDK8 date/time类型，以及 `long`/`Long`。
+如您所见，可以有选择地应用注解，具体取决于您要捕获的信息。对于捕获更改发生时间的注解，可以使用Joda-Time，`DateTime`，遗留的Java `Date` 和 `Calendar`，JDK8日期时间类型，以及 `long` 或 `Long`。
 
 [[auditing.interfaces]]
 === 基于接口的审计元数据
@@ -63,6 +63,6 @@ class SpringSecurityAuditorAware implements AuditorAware<User> {
 ----
 ====
 
-该实现访问Spring Security提供的 `Authentication` 对象，并从其查找您在 `UserDetailsService` 实现中创建的自定义 `UserDetails` 实例。
+该实现访问Spring Security提供的 `Authentication` 对象，并查找您在 `UserDetailsService` 实现中创建的自定义 `UserDetails` 实例。
 我们这里假设您通过 `UserDetails` 实现公开域用户，但是根据找到的 `Authentication`，您也可以从任何地方查找它。
 
