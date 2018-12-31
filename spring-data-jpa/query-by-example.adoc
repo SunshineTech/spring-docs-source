@@ -1,7 +1,7 @@
 [[query-by-example.execution]]
 == 执行example
 
-在Spring Data JPA中，您可以与Repository一起使用按示例查询。
+在Spring Data JPA中，您可以与Repository一起使用按示例查询，如下例所示：
 
 .使用Repository的按示例查询
 ====
@@ -22,7 +22,9 @@ public class PersonService {
 
 NOTE: 目前，只有 `SingularAttribute` 属性可用于属性匹配。
 
-属性说明符接受属性名称（例如“firstname”和“lastname”）。您可以通过将属性与点（“address.city”）链接在一起来导航。您还可以使用匹配选项和区分大小写来调整它。
+属性说明符接受属性名称（例如 `firstname` 和 `lastname`）。您可以通过将属性与点（`address.city`）链接在一起来导航。您还可以使用匹配选项和区分大小写来调整它。
+
+下表显示了可以使用的各种 `StringMatcher` 选项以及在名为 `firstname` 的字段上使用它们的结果：
 
 [cols="1,2", options="header"]
 .`StringMatcher`选项

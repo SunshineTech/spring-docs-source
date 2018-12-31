@@ -6,7 +6,7 @@
 
 [qanda]
 我想获得有关在 `JpaRepository` 中哪些方法被调用的更详细的日志信息。我怎样才能获得它们？::
-  您可以使用Spring提供的 `CustomizableTraceInterceptor`：
+  您可以使用Spring提供的 `CustomizableTraceInterceptor`，如下例所示：
 +
 [source, xml]
 ----
@@ -28,7 +28,7 @@
 目前，我已经基于 `HibernateDaoSupport` 实现了存储库层。我使用Spring的 `AnnotationSessionFactoryBean` 创建了 `SessionFactory`。如何在此环境中使用Spring Data存储库？::
   您必须使用 `HibernateJpaSessionFactoryBean` 替换 `AnnotationSessionFactoryBean`，如下所示：
 +
-.从HibernateEntityManagerFactory查找SessionFactory
+.从 `HibernateEntityManagerFactory` 查找 `SessionFactory`
 ====
 [source, xml]
 ----

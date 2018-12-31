@@ -3,6 +3,9 @@
 
 [[new-features.1-11-0]]
 == Spring Data JPA 1.11中的新功能
+
+Spring Data JPA 1.11添加了以下功能：
+
 * 改进了与Hibernate 5.2的兼容性。
 * 支持<<query-by-example>>的任意匹配模式。
 * 分页查询执行优化。
@@ -11,10 +14,12 @@
 [[new-features.1-10-0]]
 == Spring Data JPA 1.10中的新功能
 
+Spring Data JPA 1.10添加了以下功能：
+
 * 支持存储库查询方法中<<projections>>。
 * 支持<<query-by-example>>。
-* 已启用以下注解构建自己的组合注解：`@EntityGraph`、`@Lock`、`@Modifying`、`@Query`、`@QueryHints` 和 `@Procedure`。
+* 已启用以下注解构建组合注解：`@EntityGraph`、`@Lock`、`@Modifying`、`@Query`、`@QueryHints` 和 `@Procedure`。
 * 在集合表达式上支持 `Contains` 关键字。
-* JSR-310和ThreeTenBP `ZoneId` 的AttributeConverter。
+* JSR-310和ThreeTenBP的 `ZoneId` 的 `AttributeConverter` 实现。
 * 升级到Querydsl 4、Hibernate 5、OpenJPA 2.4和EclipseLink 2.6.1。
 
