@@ -4,14 +4,11 @@
 Spring Data JPA为Java Persistence API（JPA）提供存储库支持。它简化了需要访问JPA数据源的应用程序的开发。
 
 [[project]]
-[preface]
 == 项目元数据
 
-使用Spring Data JPA时，您可能会发现以下链接有用：
-
-* 版本控制：http://github.com/spring-projects/spring-data-jpa
-* 错误追踪系统：https://jira.spring.io/browse/DATAJPA
-* 发布存储库：https://repo.spring.io/libs-release
-* 里程碑存储库：https://repo.spring.io/libs-milestone
-* 快照存储库：https://repo.spring.io/libs-snapshot
+* 版本控制 - http://github.com/spring-projects/spring-data-jpa
+* 错误追踪系统 - https://jira.spring.io/browse/DATAJPA
+* 发布存储库 - https://repo.spring.io/libs-release
+* 里程碑存储库 - https://repo.spring.io/libs-milestone
+* 快照存储库 - https://repo.spring.io/libs-snapshot
 
