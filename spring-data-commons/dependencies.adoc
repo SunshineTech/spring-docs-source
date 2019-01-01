@@ -6,14 +6,14 @@
 
 .使用Spring Data release train BOM
 ====
-[source, xml]
+[source, xml, subs="+attributes"]
 ----
 <dependencyManagement>
   <dependencies>
     <dependency>
       <groupId>org.springframework.data</groupId>
       <artifactId>spring-data-releasetrain</artifactId>
-      <version>${release-train}</version>
+      <version>{releasetrainVersion}</version>
       <scope>import</scope>
       <type>pom</type>
     </dependency>
