@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	
+	<artifactId>spring-data-rest-distribution</artifactId>
+
+	<packaging>pom</packaging>
+
+	<name>Spring Data REST - Distribution</name>
+	<description>Distribution build for Spring Data REST</description>
+
+	<parent>
+		<groupId>org.springframework.data</groupId>
+		<artifactId>spring-data-rest-parent</artifactId>
+		<version>3.0.10.RELEASE</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+	
+	<properties>
+		<project.root>${basedir}/..</project.root>
+		<dist.key>SDREST</dist.key>
+	</properties>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>wagon-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.asciidoctor</groupId>
+				<artifactId>asciidoctor-maven-plugin</artifactId>
+				<executions>
+        	<execution>
+          	<id>output-html</id>
+          	<phase>generate-resources</phase>
+          	<goals>
+            	<goal>process-asciidoc</goal>
+          	</goals>
+          	<configuration>
+          		<sourceDocumentName>index.adoc</sourceDocumentName>
+            	<backend>html5</backend>
+            	<sourceHighlighter>prettify</sourceHighlighter>
+            	<attributes>
+            		<version>${project.version}</version>
+            		<releasetrainVersion>Kay-SR10</releasetrainVersion>
+            		<springVersion>5.0.9.RELEASE</springVersion>
+            		<revdate>2018-09-10</revdate>
+            	</attributes>
+          	</configuration>
+        	</execution>
+      	</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

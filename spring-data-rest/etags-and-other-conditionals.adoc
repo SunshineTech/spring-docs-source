@@ -15,10 +15,9 @@ http://tools.ietf.org/html/rfc7232#section-2.3[ETag头]提供了标记资源的�
 ----
 include::{spring-data-rest-root}/spring-data-rest-webmvc/src/test/java/org/springframework/data/rest/webmvc/support/ETagUnitTests.java[tag=versioned-sample]
 ----
+
+<1> `@Version` 注解（如果您正在使用Spring Data JPA，则为JPA；对于所有其他模块，则为Spring Data `org.springframework.data.annotation.Version`）将此字段标记为版本标记。
 ====
-
-<1> Spring Data Commons的 `@Version` 注解将此字段标记为版本标记。
-
 此POJO在由Spring Data REST作为REST资源提供时，将具有带有version字段值的 `ETag` 头。
 
 如果我们提供如下所示的 `If-Match` 头，我们可以有条件地 `PUT`、`PATCH`或 `DELETE` 该资源：

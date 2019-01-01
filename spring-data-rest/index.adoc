@@ -2,7 +2,7 @@
 = Spring Data REST - 参考文档
 Jon Brisbin, Oliver Gierke, Greg Turnquist
 :revnumber: {version}
-:revdate: 2017-10-05
+:revdate: {revdate}
 :doctype: book
 :docinfo: shared
 :toc-title: 目录
