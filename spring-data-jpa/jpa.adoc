@@ -99,6 +99,30 @@ NOTE: 您必须直接创建 `LocalContainerEntityManagerFactoryBean` 而不是 `
 前面的配置类使用 `spring-jdbc` 的 `EmbeddedDatabaseBuilder` API设置嵌入式HSQL数据库。Spring Data然后设置 `EntityManagerFactory` 并使用Hibernate作为示例持久性提供程序。
 这里声明的最后一个基础结构组件是 `JpaTransactionManager`。最后，此示例使用基本上具有与XML命名空间相同属性的 `@EnableJpaRepositories` 注解激活Spring Data JPA存储库。如果未配置基本包，则使用配置类所在的基本包。
 
+[[jpa.bootstrap-mode]]
+=== 引导模式
+
+默认情况下，Spring Data JPA存储库是默认的Spring bean。它们是单例范围并且急切地初始化。在启动期间，它们已经与JPA `EntityManager` 交互以进行验证和元数据分析。
+Spring框架支持在后台线程中初始化JPA `EntityManagerFactory`，因为该进程通常占用Spring应用程序中的大量启动时间。
+为了有效地利用后台初始化，我们需要确保尽可能晚地初始化JPA存储库。
+
+从Spring Data JPA 2.1开始，您现在可以配置一个接收以下值的 `BootstrapMode`（通过 `@EnableJpaRepositories` 注解或XML命名空间）：
+
+* `DEFAULT`（默认） -- 除非使用 `@Lazy` 明确注解，否则会急切地实例化存储库。如果没有客户端bean需要存储库的实例，延迟化才有效，因为这需要初始化存储库bean。
+* `LAZY` -- 隐式声明所有存储库bean都是惰性的，并且还会导致创建延迟初始化代理以将其注入客户端bean。
+这意味着，如果客户端bean只是将实例存储在字段中而不是在初始化期间使用存储库，则不会实例化存储库。存储库实例在首次与存储库交互时才初始化和验证。
+* `DEFERRED` -- 基本上与 `LAZY` 相同的操作模式，但触发存储库初始化以响应 `ContextRefreshedEvent`，以便在应用程序完全启动之前验证存储库。
+
+==== 建议
+
+如果您不使用异步，JPA坚持使用默认的引导模式引导。
+
+如果您异步引导JPA，`DEFERRED` 是一个合理的默认值，因为它将确保Spring Data JPA引导程序仅等待 `EntityManagerFactory` 设置，如果它本身比初始化所有其他应用程序组件花费更长时间。
+尽管如此，它确保在应用程序发出信号之前正确初始化和验证存储库。
+
+`LAZY` 是测试场景和本地开发的不错选择。一旦您非常确定存储库将正确引导，或者在您测试应用程序的其他部分的情况下，对所有存储库执行验证可能只会不必要地增加启动时间。
+这同样适用于本地开发，在该开发中，您只访问可能只需要初始化单个存储库的应用程序部分。
+
 [[jpa.entity-persistence]]
 == 持久实体
 
@@ -729,7 +753,7 @@ List<Customer> customers = customerRepository.findAll(isLongTermCustomer());
 ====
 
 为什么不为这种数据访问创建查询？使用单个 `Specification` 并不比普通的查询声明获得很多好处。
-当您将它们组合起来创建新 `Specification` 对象时，规范的力量真的很闪耀。您可以通过我们提供的 `Specifications` 的默认方法来实现这一点，以构建如下表达式：
+当您将它们组合起来创建新 `Specification` 对象时，规范的力量真的很闪耀。您可以通过我们提供的 `Specifications` 的辅组类来实现这一点，以构建如下表达式：
 
 .组合Specifications
 ====
@@ -737,9 +761,9 @@ List<Customer> customers = customerRepository.findAll(isLongTermCustomer());
 ----
 MonetaryAmount amount = new MonetaryAmount(200.0, Currencies.DOLLAR);
 List<Customer> customers = customerRepository.findAll(
-  isLongTermCustomer().or(hasSalesOfMoreThan(amount)));
+  where(isLongTermCustomer()).or(hasSalesOfMoreThan(amount)));
 ----
-`Specification` 提供了一些胶水代码默认方法来链接和组合 `Specification` 实例。这些方法让您通过创建新 `Specification` 实现并将它们与现有实现相结合来扩展数据访问层。
+`Specification` 提供了一些胶水代码方法来链接和组合 `Specification` 实例。这些方法让您通过创建新 `Specification` 实现并将它们与现有实现相结合来扩展数据访问层。
 ====
 
 include::{spring-data-commons-docs}/query-by-example.adoc[leveloffset=+1]
