@@ -729,7 +729,7 @@ List<Customer> customers = customerRepository.findAll(isLongTermCustomer());
 ====
 
 为什么不为这种数据访问创建查询？使用单个 `Specification` 并不比普通的查询声明获得很多好处。
-当您将它们组合起来创建新 `Specification` 对象时，规范的力量真的很闪耀。您可以通过我们提供的 `Specifications` 帮助程序类来实现这一点，以构建如下表达式：
+当您将它们组合起来创建新 `Specification` 对象时，规范的力量真的很闪耀。您可以通过我们提供的 `Specifications` 的默认方法来实现这一点，以构建如下表达式：
 
 .组合Specifications
 ====
@@ -737,9 +737,9 @@ List<Customer> customers = customerRepository.findAll(isLongTermCustomer());
 ----
 MonetaryAmount amount = new MonetaryAmount(200.0, Currencies.DOLLAR);
 List<Customer> customers = customerRepository.findAll(
-  where(isLongTermCustomer()).or(hasSalesOfMoreThan(amount)));
+  isLongTermCustomer().or(hasSalesOfMoreThan(amount)));
 ----
-`Specifications` 提供了一些胶水代码方法来链接和组合 `Specification` 实例。这些方法让您通过创建新 `Specification` 实现并将它们与现有实现相结合来扩展数据访问层。
+`Specification` 提供了一些胶水代码默认方法来链接和组合 `Specification` 实例。这些方法让您通过创建新 `Specification` 实现并将它们与现有实现相结合来扩展数据访问层。
 ====
 
 include::{spring-data-commons-docs}/query-by-example.adoc[leveloffset=+1]
