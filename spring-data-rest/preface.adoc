@@ -5,10 +5,10 @@
 [preface]
 == 项目元数据
 
-* 版本控制 - https://github.com/spring-projects/spring-data-rest
-* 错误追踪系统 - https://jira.spring.io/browse/DATAREST
-* 项目页面 - http://projects.spring.io/spring-data-rest
-* 发布存储库 - https://repo.spring.io/libs-release
-* 里程碑存储库 - https://repo.spring.io/libs-milestone
-* 快照存储库 - https://repo.spring.io/libs-snapshot
+* 版本控制：https://github.com/spring-projects/spring-data-rest
+* 错误追踪系统：https://jira.spring.io/browse/DATAREST
+* 项目页面：http://projects.spring.io/spring-data-rest
+* 发布存储库：https://repo.spring.io/libs-release
+* 里程碑存储库：https://repo.spring.io/libs-milestone
+* 快照存储库：https://repo.spring.io/libs-snapshot
 

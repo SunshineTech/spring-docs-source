@@ -10,10 +10,11 @@
 http://alps.io/[ALPS]是一种定义应用程序级语义的简单描述的数据格式，类似于HTML微格式的复杂性。
 ALPS文档可以用作profile来解释具有与应用程序无关的媒体类型（例如HTML，HAL，Collection+JSON，Siren等）的文档的应用程序语义。这样可以提高跨媒体类型的profile文档的可重用性。
 
-Spring Data REST为每个导出的存储库提供ALPS文档。它包含有关RESTful转换以及每个存储库属性的信息。
+Spring Data REST为每个导出的存储库提供ALPS文档。它包含有关RESTful转换和每个存储库属性的信息。
 
-Spring Data REST应用程序的根是 *profile* 链接。假设您有一个具有 *persons* 和相关 *addresses* 的应用，则根文档将如下所示：
+Spring Data REST应用程序的根是profile链接。假设您有一个具有 `persons` 和相关 `addresses` 的应用，则根文档将如下所示：
 
+====
 [source,javascript]
 ----
 {
@@ -30,12 +31,14 @@ Spring Data REST应用程序的根是 *profile* 链接。假设您有一个具�
   }
 }
 ----
+====
 
-*profile* 链接，如 https://tools.ietf.org/html/rfc6906[RFC 6906]中定义，是一个包含应用程序级详细信息的位置。
-http://tools.ietf.org/html/draft-amundsen-richardson-foster-alps-00[ALPS草案规范]旨在定义我们将要在本节中进一步探讨的特定profile格式。
+profile链接，如 https://tools.ietf.org/html/rfc6906[RFC 6906]中定义，是一个包含应用程序级详细信息的位置。
+http://tools.ietf.org/html/draft-amundsen-richardson-foster-alps-00[ALPS草案规范]旨在定义我们将要在本节稍后探讨的特定profile格式。
 
-如果导航到 `localhost:8080/profile` 的 *profile* 链接，您会看到类似如下内容：
+如果导航到 `localhost:8080/profile` 的profile链接，您会看到类似如下内容：
 
+====
 [source,javascript]
 ----
 {
@@ -52,11 +55,13 @@ http://tools.ietf.org/html/draft-amundsen-richardson-foster-alps-00[ALPS草案�
   }
 }
 ----
+====
 
-IMPORTANT: 在根级别，*profile* 是单个链接，因此无法处理服务多个应用程序profile。这就是您必须导航到 `/profile` 以查找每个资源的元数据的链接的原因。
+IMPORTANT: 在根级别，*profile* 是单个链接，无法处理服务多个应用程序profile。这就是您必须导航到 `/profile` 以查找每个资源的元数据的链接的原因。
 
-让我们导航到 `/profile/persons`，然后查看 `Person` 资源的profile数据。
+如果导航到 `/profile/persons`，然后查看 `Person` 资源的profile数据，您会看到类似下例的内容：
 
+====
 [source,javascript]
 ----
 {
@@ -111,15 +116,17 @@ IMPORTANT: 在根级别，*profile* 是单个链接，因此无法处理服务�
 }
 ----
 
-<1> 顶部是 `Person` 资源的属性详细列表，标识为 `#person-representation`。它列出了属性的名称。
-<2> 资源表示之后是所有支持的操作。这个是如何创建一个新的 `Person`。
-<3> 名称为 *persons*，表示POST应该应用于整个集合，而不是单个 *person*。
-<4> *type* 为 `UNSAFE`，因为此操作可以改变系统的状态。
+<1> `Person` 资源的属性详细列表，标识为 `#person-representation`，列出了属性的名称。
+<2> 支持的操作。这个表明如何创建新 `Person`。
+<3> `name` 是 `persons`，表示（因为它是复数）POST应该应用于整个集合，而不是单个 `person`。
+<4> `type` 为 `UNSAFE`，因为此操作可以改变系统的状态。
+====
 
 NOTE: 此JSON文档的媒体类型为 `application/alps+json`。这与之前的JSON文档不同，后者的媒体类型为 `application/hal+json`。这些格式不同，并受不同规范的约束。
 
-当您查看集合资源时，还会在 *_links* 集合中找到“profile”链接。
+检查集合资源时，您还可以在 `_links` 集合中找到 `profile` 链接，如下例所示：
 
+====
 [source,javascript]
 ----
 {
@@ -138,8 +145,9 @@ NOTE: 此JSON文档的媒体类型为 `application/alps+json`。这与之前的J
 
 <1> 此HAL文档表示 `Person` 集合。
 <2> 它具有指向元数据相同URI的 *profile* 链接。
+====
 
-*profile* 链接同样会默认，或者如果您使用 *application/alps+json* 的 http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.1[Accept头]，提供ALPS。
+同样，默认情况下，`profile` 链接提供ALPS。 但是，如果您使用 http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.1[`Accept` 头]，它可以提供 `application/alps+json`。
 
 [[metadata.alps.control-types]]
 === 超媒体控件类型
@@ -151,20 +159,22 @@ ALPS显示每个超媒体控件的类型。它们包括：
 |===
 | 类型 | 描述
 
-| SEMANTIC | 状态元素（例如，HTML.SPAN、HTML.INPUT等）。
-| SAFE | 超媒体控件，触发安全、幂等的状态转换（例如 *GET* 或 *HEAD*）。
-| IDEMPOTENT | 超媒体控件，触发非安全、幂等的状态转换（例如 *PUT* 或 *DELETE*）。
-| UNSAFE | 超媒体控件，触发非安全、非幂等的状态转换（例如 *POST*）。
+| SEMANTIC | 状态元素（例如，`HTML.SPAN`、`HTML.INPUT` 和其它的）。
+| SAFE | 超媒体控件，触发安全、幂等的状态转换（例如 `GET` 或 `HEAD`）。
+| IDEMPOTENT | 超媒体控件，触发非安全、幂等的状态转换（例如 `PUT` 或 `DELETE`）。
+| UNSAFE | 超媒体控件，触发非安全、非幂等的状态转换（例如 `POST`）。
 |===
 
-在上面的表示部分中，来自应用程序的数据字节标记为 *SEMANTIC*。*address* 是一个涉及安全 *GET* 检索的链接。因此，它标记为 *SAFE*。超媒体操作本身映射到表格所示的类型。
+在前面显示的表示部分中，来自应用程序的数据位被标记为 `SEMANTIC`。`address` 是一个涉及安全 `GET` 检索的链接。因此，它被标记为 `SAFE`。超媒体操作本身映射到前面表格所示的类型。
 
 [[metadata.alps.projections]]
 === 投影的ALPS
 
-如果您定义任何投影，它们也会列在ALPS元数据中。假设我们还定义了 *inlineAddress* 和 *noAddresses*，它们将出现在相关操作中，即整个集合的 *GET* 以及单个资源的 *GET*。
-以下显示了 *get-persons* 小节的替代版本：
+如果您定义任何投影，它们也会列在ALPS元数据中。假设我们还定义了 `inlineAddress` 和 `noAddresses`，它们将出现在相关操作中。
+（有关这两个投影的定义和讨论，请参阅“<<projections-excerpts.projections>>”。）即 *GET* 将出现在整个集合的操作中， *GET* 将出现在单个资源的操作中。
+下例显示了 `get-persons` 小节的替代版本：
 
+====
 [source,javascript]
 ----
 ...
@@ -209,17 +219,19 @@ ALPS显示每个超媒体控件的类型。它们包括：
 ...
 ----
 
-<1> 出现一个新属性 *descriptors*，包含一个具有条目 *projection* 的数组。
-<2> 在 *projection.descriptors* 中，我们可以看到列出的 *inLineAddress*。它将呈现 *address*、*firstName* 和 *lastName*。在投影内呈现的关系导致内联数据字段。
-<3> 还找到 *noAddresses*，它提供包含 *firstName* 和 *lastName* 的子集。
+<1> 出现一个新属性 `descriptors`，包含一个具有条目 `projection` 的数组。
+<2> 在 `projection.descriptors` 中，我们可以看到列出的 `inLineAddress`。它呈现 `address`、`firstName` 和 `lastName`。在投影内呈现的关系导致包括内联的数据字段。
+<3> `noAddresses` 提供包含 `firstName` 和 `lastName` 的子集。
+====
 
-有了这些信息，客户端不仅应该能够推断出可用的RESTful转换，而且还能够在某种程度上推断出交互所需的数据元素。
+有了所有这些信息，客户端不仅可以推断出可用的RESTful转换，而且在某种程度上还可以推断出与后端交互所需的数据元素。
 
 [[metadata.alps.descriptions]]
 === 在ALPS描述中添加自定义详细信息
 
-可以创建出现在ALPS元数据中的自定义消息。只需像这样创建 `rest-messages.properties`：
+可以创建出现在ALPS元数据中的自定义消息。为此，请如下创建 `rest-messages.properties`：
 
+====
 [source,properties]
 ----
 rest.description.person=A collection of people
@@ -228,9 +240,11 @@ rest.description.person.firstName=Person's first name
 rest.description.person.lastName=Person's last name
 rest.description.person.address=Person's address
 ----
+====
 
-如您所见，这定义了为 `Person` 资源显示的详细信息。它们改变了 *person-representation* 的ALPS格式，如下所示：
+这些 `rest.description.*` 属性定义了为 `Person` 资源显示的详细信息。它们改变了 `person-representation` 的ALPS格式，如下所示：
 
+====
 [source,javascript]
 ----
 ...
@@ -274,13 +288,14 @@ rest.description.person.address=Person's address
 ...
 ----
 
-通过提供这些属性设置，每个字段都有一个额外的 *doc* 属性。
-
 <1> `rest.description.person` 的值映射到整个表示中。
-<2> `rest.description.person.firstName` 的值映射到 *firstName* 属性。
-<3> `rest.description.person.lastName` 的值映射到 *lastName* 属性。
-<4> `rest.description.person.id` 的值映射到 *id* 属性（通常不显示的字段）。
-<5> `rest.description.person.address` 的值映射到 *address* 属性。
+<2> `rest.description.person.firstName` 的值映射到 `firstName` 属性。
+<3> `rest.description.person.lastName` 的值映射到 `lastName` 属性。
+<4> `rest.description.person.id` 的值映射到 `id` 属性（通常不显示的字段）。
+<5> `rest.description.person.address` 的值映射到 `address` 属性。
+====
+
+提供这些属性设置会使每个字段具有额外的`doc`属性。
 
 NOTE: Spring MVC（这是Spring Data REST应用程序的本质）支持语言设置，这意味着您可以使用不同的消息绑定多个属性文件。
 
@@ -294,8 +309,9 @@ http://json-schema.org/[JSON Schema]是Spring Data REST支持的另外一种元�
 * 清晰，人和机器可读的文档
 * 完整的结构验证，对自动化测试和验证客户提交的数据非常有用
 
-如<<metadata.alps,上一节>>所示，您可以通过从根URI导航到“profile”链接来访问此数据。
+如<<metadata.alps,上一节>>所示，您可以通过从根URI导航到 `profile` 链接来访问此数据。
 
+====
 [source,javascript]
 ----
 {
@@ -312,11 +328,13 @@ http://json-schema.org/[JSON Schema]是Spring Data REST支持的另外一种元�
   }
 }
 ----
+====
 
-这些链接与前面显示的相同。要检索JSON Schema，请使用Accept头 *application/schema+json* 调用它们。
+这些链接与前面显示的相同。要检索JSON Schema，可以使用 `Accept` 头 `application/schema+json` 调用它们。
 
-在本例中，如果您执行 `curl -H 'Accept:application/schema+json' http://localhost:8080/profile/persons`，您会看到像下面的内容：
+在本例中，如果您执行 `curl -H 'Accept:application/schema+json' http://localhost:8080/profile/persons`，您将看到类似以下输出：
 
+====
 [source,javascript]
 ----
 {
@@ -362,11 +380,13 @@ http://json-schema.org/[JSON Schema]是Spring Data REST支持的另外一种元�
 
 <1> 导出的类型
 <2> 属性列表
+====
 
 如果您的资源具有指向其他资源的链接，则会有更多详细信息。
 
-当您查看集合资源时，还会在 *_links* 集合中找到“profile”链接。
+检查集合资源时，您还可以在 `_links` 集合中找到 `profile` 链接，如下例所示：
 
+====
 [source,javascript]
 ----
 {
@@ -385,8 +405,9 @@ http://json-schema.org/[JSON Schema]是Spring Data REST支持的另外一种元�
 
 <1> 此HAL文档表示 `Person` 集合。
 <2> 它具有指向元数据相同URI的 *profile* 链接。
+====
 
-同样，*profile* 链接将默认提供<<metadata.alps,ALPS>>。如果为它提供了 *application/schema+json* http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.1[Accept头]，它将呈现JSON Schema表示。
+同样，`profile` 链接默认提供<<metadata.alps,ALPS>>。如果为它提供了 `application/schema+json` http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.1[`Accept` 头]，它呈现JSON Schema表示。
 
 //= JSON Patch
 

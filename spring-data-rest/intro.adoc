@@ -2,6 +2,7 @@
 = 介绍
 
 REST Web服务已成为Web上应用程序集成的首选方式。在其核心，REST定义了系统由客户端与之交互的资源组成。这些资源以超媒体驱动的方式实现。
-Spring MVC提供了构建这些服务的坚实基础。但是，为多域对象系统实现甚至最简单的REST Web服务原则可能非常繁琐，并且会产生大量的样板代码。
+https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/web.html#spring-web[Spring MVC]和 https://docs.spring.io/spring-framework/docs/current/spring-framework-reference/web-reactive.html#spring-webflux[Spring WebFlux]都为构建这些服务提供了坚实的基础。
+但是，为多域对象系统实现甚至最简单的REST Web服务原则可能非常繁琐，并且会产生大量的样板代码。
 
-Spring Data REST构建于Spring Data存储库之上，并自动将这些存储库作为REST资源导出。它利用超媒体来允许客户端查找存储库公开的功能，并自动将这些资源集成到相关的基于超媒体的功能中。
+Spring Data REST构建于Spring Data存储库之上，并自动将这些存储库作为REST资源导出。它利用超媒体来让客户端自动查找存储库公开的功能，并将这些资源集成到相关的基于超媒体的功能中。

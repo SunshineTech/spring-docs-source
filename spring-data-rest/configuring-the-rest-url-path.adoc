@@ -1,29 +1,34 @@
 [[customizing-sdr.configuring-the-rest-url-path]]
 = 配置REST URL路径
 
-配置导出JPA存储库资源的URL路径段很简单。您只需在类级别和/或查询方法级别添加注解。
+您可以配置导出的JPA存储库资源的URL路径段。为此，请在类级别或查询方法级别添加注解。
 
-默认情况下，导出器将使用域类的名称公开 `CrudRepository`。Spring Data REST还应用 https://github.com/atteo/evo-inflector[Evo Inflector]来复数化这个单词。所以存储库定义如下：
+默认情况下，导出器使用域类的名称公开 `CrudRepository`。Spring Data REST还应用 https://github.com/atteo/evo-inflector[Evo Inflector]来复数化这个单词。考虑以下存储库定义：
 
+====
 [source,java]
 ----
 interface PersonRepository extends CrudRepository<Person, Long> {}
 ----
+====
 
-默认情况下，将在URL `http://localhost:8080/persons/` 公开。
+前面示例定义的存储库在 `http://localhost:8080/persons/` 公开。
 
-要更改存储库的导出方式，请在类级别添加 `@RestResource` 注解：
+要更改存储库的导出方式，请在类级别添加 `@RestResource` 注解，如下例所示：
 
+====
 [source,java]
 ----
 @RepositoryRestResource(path = "people")
 interface PersonRepository extends CrudRepository<Person, Long> {}
 ----
+====
 
-现在存储库可以在URL `http://localhost:8080/people/` 下访问。
+前面示例定义的存储库可以在 `http://localhost:8080/people/` 访问。
 
-如果您定义了查询方法，那么这些方法也默认通过其名称公开：
+如果您定义了查询方法，那么这些方法也默认通过其名称公开，如下例所示：
 
+====
 [source,java]
 ----
 interface PersonRepository extends CrudRepository<Person, Long> {
@@ -31,13 +36,15 @@ interface PersonRepository extends CrudRepository<Person, Long> {
   List<Person> findByName(String name);
 }
 ----
+====
 
-这将在URL `http://localhost:8080/persons/search/findByName` 下公开。
+前面示例中的方法在 `http://localhost:8080/persons/search/findByName` 公开。
 
-NOTE: 所有查询方法资源都在资源 `search` 下公开。
+NOTE: 所有查询方法资源都在 `search` 资源下公开。
 
-要更改公开此查询方法的URL段，请再次使用 `@RestResource` 注解：
+要更改公开此查询方法的URL段，可以再次使用 `@RestResource` 注解，如下例所示：
 
+====
 [source,java]
 ----
 @RepositoryRestResource(path = "people")
@@ -47,15 +54,17 @@ interface PersonRepository extends CrudRepository<Person, Long> {
   List<Person> findByName(String name);
 }
 ----
+====
 
-现在，此查询方法将在URL `http://localhost:8080/people/search/names` 下公开。
+现在，前面示例中的查询方法在 `http://localhost:8080/people/search/names` 公开。
 
-== 处理rel
+== 处理 `rel` 属性
 
-由于这些资源都是可发现的，因此您还可以影响“rel”属性在导出器发送的链接中的显示方式。
+由于这些资源都是可发现的，因此您还可以影响 `rel` 属性在导出器发送的链接中的显示方式。
 
-例如，在默认配置中，如果您向 `http://localhost:8080/persons/search` 发出请求以找出所公开的查询方法，您将获得一个链接列表：
+例如，在默认配置中，如果您向 `http://localhost:8080/persons/search` 发出请求以找出所公开的查询方法，您获得一个类似于以下的链接列表：
 
+====
 [source,javascript]
 ----
 {
@@ -66,9 +75,11 @@ interface PersonRepository extends CrudRepository<Person, Long> {
   }
 }
 ----
+====
 
-要更改rel值，请在 `@RestResource` 注解上使用 `rel` 属性：
+要更改 `rel` 值，请在 `@RestResource` 注解上使用 `rel` 属性，如下例所示：
 
+====
 [source,java]
 ----
 @RepositoryRestResource(path = "people")
@@ -78,9 +89,11 @@ interface PersonRepository extends CrudRepository<Person, Long> {
   List<Person> findByName(String name);
 }
 ----
+====
 
-这将导致链接值：
+前面示例产生以下链接值：
 
+====
 [source,javascript]
 ----
 {
@@ -91,11 +104,13 @@ interface PersonRepository extends CrudRepository<Person, Long> {
   }
 }
 ----
+====
 
-NOTE: 这些JSON片段假设您使用的是Spring Data REST的 http://stateless.co/hal_specification.html[HAL]默认格式。可以关闭HAL，这会导致输出看起来不同。
-但是覆盖rel名称的能力完全独立于呈现格式。
+NOTE: 这些JSON片段假设您使用的是Spring Data REST的 http://stateless.co/hal_specification.html[HAL]默认格式。可以关闭HAL，这会导致输出看起来不同。但是覆盖 `rel` 名称的能力完全独立于呈现格式。
 
+您可以更改存储库的 `rel`，如下例所示：
 
+====
 [source,java]
 ----
 @RepositoryRestResource(path = "people", rel = "people")
@@ -105,9 +120,11 @@ interface PersonRepository extends CrudRepository<Person, Long> {
   List<Person> findByName(String name);
 }
 ----
+====
 
-更改存储库的rel会更改顶级名称：
+更改存储库的 `rel` 会更改顶级名称，如下例所示：
 
+====
 [source,javascript]
 ----
 {
@@ -119,14 +136,16 @@ interface PersonRepository extends CrudRepository<Person, Long> {
   }
 }
 ----
+====
 
-在上面的顶级片段中：
+在前面输出中显示的顶级片段中：
 
-* `path = "people"` 将 `href` 中的值从 `/persons` 更改为 `/people`
-* `rel = "people"` 将链接的名称从 `persons` 更改为 `people`
+* `path = "people"` 将 `href` 中的值从 `/persons` 更改为 `/people`。
+* `rel = "people"` 将链接的名称从 `persons` 更改为 `people`。
 
-当您导航到此存储库的 *search* 资源时，finder-method的 `@RestResource` 注解已更改路径，如下所示：
+当您导航到此存储库的 `search` 资源时，finder方法的 `@RestResource` 注解已如下更改路径：
 
+====
 [source,javascript]
 ----
 {
@@ -137,30 +156,34 @@ interface PersonRepository extends CrudRepository<Person, Long> {
   }
 }
 ----
+====
 
 存储库定义中的此注解集合已导致以下更改：
 
-* 存储库级别注解的 `path = "people"` 通过 `/people` 反映在基URI中
-* 作为查找器方法为您提供 `/people/search`
-* `path = "names"` 创建了URI `/people/search/names`
-* `rel = "names"` 将链接的名称从 `findByNames` 更改为 `names`
+* 存储库级别注解的 `path = "people"` 通过 `/people` 反映在基URI中。
+* 包含finder方法为您提供 `/people/search`。
+* `path = "names"` 创建了URI `/people/search/names`。
+* `rel = "names"` 将链接的名称从 `findByNames` 更改为 `names`。
 
 [[customizing-sdr.hiding-repositories]]
 == 隐藏某些存储库、查询方法或字段
 
-您可能根本不想导出某个存储库，存储库上的查询方法或实体的字段。示例包括隐藏像 `User` 对象的 `password` 字段或类似敏感数据。
+您可能根本不想导出某个存储库，存储库上的查询方法或实体的字段。示例包括隐藏像 `User` 对象的 `password` 字段和类似敏感数据。
 要告诉导出器不导出这些项，请使用 `@RestResource` 并设置 `exported = false` 注解它们。
 
-例如，要跳过导出一个存储库：
+例如，要跳过导出存储库，您可以创建类似于下例的存储库定义：
 
+====
 [source,java]
 ----
 @RepositoryRestResource(exported = false)
 interface PersonRepository extends CrudRepository<Person, Long> {}
 ----
+====
 
-要跳过导出一个查询方法：
+要跳过导出查询方法，可以使用 `@RestResource(exported = false)` 如下注解查询方法：
 
+====
 [source,java]
 ----
 @RepositoryRestResource(path = "people", rel = "people")
@@ -170,9 +193,11 @@ interface PersonRepository extends CrudRepository<Person, Long> {
   List<Person> findByName(String name);
 }
 ----
+====
 
-或要跳过导出一个字段：
+同样，要跳过导出字段，可以使用 `@RestResource(exported = false)` 如下注解该字段：
 
+====
 [source,java]
 ----
 @Entity
@@ -185,15 +210,17 @@ public class Person {
   private Map<String, Profile> profiles;
 }
 ----
+====
 
-WARNING: 投影提供了更改导出内容并有效<<projections-excerpts.hidden-data,忽略这些设置>>的方法。如果您针对同一域对象创建任何投影，那么您有责任不导出字段。
+WARNING: 投影提供了更改导出内容并有效<<projections-excerpts.hidden-data,忽略这些设置>>的方法。如果您针对同一域对象创建任何投影，确保不导出字段。
 
 [[customizing-sdr.hiding-repository-crud-methods]]
 == 隐藏存储库CRUD方法
 
 如果您不想公开 `CrudRepository`上的save或delete方法，可以通过重写您想要关闭的方法并在该重写版本上使用 `@RestResource(exported = false)` 设置。
-例如，要阻止HTTP用户调用 `CrudRepository` 的delete方法，请重写所有这些方法并将注解添加到重写的方法上。
+例如，要阻止HTTP用户调用 `CrudRepository` 的delete方法，请重写所有这些方法并将注解添加到重写的方法上，如下：
 
+====
 [source,java]
 ----
 @RepositoryRestResource(path = "people", rel = "people")
@@ -208,6 +235,7 @@ interface PersonRepository extends CrudRepository<Person, Long> {
   void delete(Person entity);
 }
 ----
+====
 
-WARNING: 重要的是您要重写 _两个_ delete方法，因为导出器当前使用一种有点天真的算法来确定要使用哪种CRUD方法以获得更快的运行时性能。
-目前无法关闭接收ID的delete版本，但保留导出接收实体实例的版本。目前，您可以导出或不导出delete方法。如果想关掉它们，那么请记住必须使用 `exported = false` 来注解这两个版本。
+WARNING: 重要的是您要重写 _两个_ `delete` 方法。为了提高运行时性能，导出器目前使用一种有点天真的算法来确定使用哪种CRUD方法。
+您当前无法关闭接收ID的 `delete` 版本，但导出接收实体实例的版本。目前，您可以导出或不导出 `delete` 方法。如果想关闭它们，请记住必须使用 `exported = false` 注解这两个版本。

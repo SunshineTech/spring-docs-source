@@ -1,13 +1,14 @@
 [[projections-excerpts]]
 = 投影和摘录
 
-Spring Data REST提供了导出的域模型的默认视图。但有时，您可能需要根据各种原因更改该模型的视图。在本节中，您将学习如何定义投影和摘录，以提供简化的资源视图。
+Spring Data REST提供了导出的域模型的默认视图。但有时，您可能需要根据各种原因更改该模型的视图。本节介绍如何定义投影和摘录，以提供简化的资源视图。
 
 [[projections-excerpts.projections]]
 == 投影
 
-查看以下域模型：
+考虑以下域模型：
 
+====
 [source,java]
 ----
 @Entity
@@ -22,30 +23,36 @@ public class Person {
   …
 }
 ----
+====
 
-此 `Person` 有几个属性：
+前面示例的 `Person` 对象有几个属性：
 
-* `id` 是主键
-* `firstName` 和 `lastName` 是数据属性
-* `address` 是另一个域对象的链接
+* `id` 是主键。
+* `firstName` 和 `lastName` 是数据属性。
+* `address` 是另一个域对象的链接。
 
 现在假设我们创建一个对应的存储库如下：
 
+====
 [source,java]
 ----
 interface PersonRepository extends CrudRepository<Person, Long> {}
 ----
+====
 
-默认情况下，Spring Data REST将导出包括其所有属性的此域对象。`firstName` 和 `lastName` 将导出为它们所属的普通数据对象。关于 `address` 属性有两个选项。
+默认情况下，Spring Data REST导出包括其所有属性的此域对象。`firstName` 和 `lastName` 导出为它们所属的普通数据对象。关于 `address` 属性有两个选项。
 其中一个是为 `Address` 对象定义一个存储库，如下所示：
 
+====
 [source,java]
 ----
 interface AddressRepository extends CrudRepository<Address, Long> {}
 ----
+====
 
-在这种情况下，`Person` 资源将 `address` 属性作为对应 `Address` 资源的URI呈现。如果我们在系统中查找“Frodo”，我们可能期待看到这样的HAL文档：
+在这种情况下，`Person` 资源将 `address` 属性作为对应 `Address` 资源的URI呈现。如果我们在系统中查找“`Frodo`”，我们可能期待看到这样的HAL文档：
 
+====
 [source,javascript]
 ----
 {
@@ -61,9 +68,11 @@ interface AddressRepository extends CrudRepository<Address, Long> {}
   }
 }
 ----
+====
 
-还有另一个路由。如果 `Address` 域对象没有自己的存储库定义，Spring Data REST将在 `Person` 资源内部内联该数据字段。
+还有另一种方法。如果 `Address` 域对象没有自己的存储库定义，则Spring Data REST包含 `Person` 资源中的数据字段，如下例所示：
 
+====
 [source,javascript]
 ----
 {
@@ -81,9 +90,12 @@ interface AddressRepository extends CrudRepository<Address, Long> {}
   }
 }
 ----
+====
 
-但是，如果您不想要 `address` 的详细信息怎么办？同样，默认情况下，Spring Data REST将导出其所有属性（`id` 除外）。您可以通过定义一个或多个投影为REST服务的使用者提供替代方案。
+但是，如果您不想要 `address` 的详细信息怎么办？同样，默认情况下，Spring Data REST导出其所有属性（`id` 除外）。您可以通过定义一个或多个投影为REST服务的使用者提供替代方案。
+下例显示了不包含地址的投影：
 
+====
 [source,java]
 ----
 @Projection(name = "noAddresses", types = { Person.class }) <1>
@@ -97,14 +109,16 @@ interface NoAddresses { <2>
 
 此投影有以下详细信息：
 
-<1> `@Projection` 注解将此标记为投影。`name` 属性提供了投影的名称，稍后您将看到如何使用它。`types` 属性将此投影定位为仅适用于 `Person` 对象。
+<1> `@Projection` 注解将此标记为投影。 `name` 属性提供了投影的名称，我们将在稍后详细介绍。`types` 属性将此投影定位为仅适用于 `Person` 对象。
 
 <2> 它是一个Java接口，使其具有声明性。
 <3> 它导出 `firstName`。
 <4> 它导出 `lastName`。
+====
 
-`NoAddresses` 投影仅包含 `firstName` 和 `lastName` 的getter，这意味着它不会提供任何地址信息。假设您有一个单独的 `Address` 资源存储库，Spring Data REST的默认视图略有不同，如下所示：
+`NoAddresses` 投影仅包含 `firstName` 和 `lastName` 的getter，这意味着它不会提供任何地址信息。假设您有一个单独的 `Address` 资源存储库，Spring Data REST的默认视图与之前的表示略有不同，如下例所示：
 
+====
 [source,javascript]
 ----
 {
@@ -122,30 +136,32 @@ interface NoAddresses { <2>
 }
 ----
 
-<1> 为此资源列出了一个新选项 `{?projection}`。
+<1> 此资源有一个新选项 `{?projection}`。
 <2> `self` URI是一个URI模板。
+====
 
-要查看将投影应用于该资源，请查看 `http://localhost:8080/persons/1?projection=noAddresses`。
+要查看对资源的投影，请查看 `http://localhost:8080/persons/1?projection=noAddresses`。
 
 NOTE: 提供给 `projection` 查询参数的值与 `@Projection(name = "noAddress")` 中指定的值相同。它与投影接口的名称无关。
 
 可以有多个投影。
 
-NOTE: 访问<<spring-data-examples.projections>>，查看您可以试验的示例项目。
+NOTE: 请参阅<<spring-data-examples.projections>>以查看示例项目。 我们鼓励您尝试一下。
 
-Spring Data REST如何找到投影定义？
+Spring Data REST如下查找投影定义：
 
 * 在与您的实体定义相同的包（或其中一个子包）中找到的任何 `@Projection` 接口都已注册。
-* 您可以通过 `RepositoryRestConfiguration.getProjectionConfiguration().addProjection(…)` 手动注册。
+* 您可以使用 `RepositoryRestConfiguration.getProjectionConfiguration().addProjection(…)` 手动注册投影。
 
-在任何一种情况下，具有投影的接口必须具有 `@Projection` 注解。
+在任何一种情况下，投影接口都必须具有 `@Projection` 注解。
 
 [[projections-excerpts.finding-projections]]
 === 查找现有投影
 
 Spring Data REST公开<<metadata.alps>>文档，一种微元数据格式。要查看ALPS元数据，请跟随根资源公开的 `profile` 链接。
-如果您向下导航到 `Person` 资源的ALPS文档（可能是 `/alps/persons`），您可以找到有关 `Person` 资源的许多详细信息。将列出投影以及有关 `GET` REST转换的详细信息，如下所示：
+如果您向下导航到 `Person` 资源的ALPS文档（可能是 `/alps/persons`），您可以找到有关 `Person` 资源的许多详细信息。列出投影以及有关 `GET` REST转换的详细信息，类似于下例：
 
+====
 [source,javascript]
 ----
 { …
@@ -177,23 +193,25 @@ Spring Data REST公开<<metadata.alps>>文档，一种微元数据格式。要�
 ----
 
 <1> ALPS文档的这一部分显示了有关 `GET` 和 `Person` 资源的详细信息。
-<2> 再往下是 `projection` 选项。
-<3> 再往下，您可以看到列出的 `noAddresses` 投影。
+<2> 此部分包含 `projection` 选项。
+<3> 此部分包含 `noAddresses` 投影。
 <4> 此投影提供的实际属性包括 `firstName` 和 `lastName`。
+====
 
 [NOTE]
 ====
-投影定义将被提取并提供给客户，如果它们是：
+投影定义被提取并提供给客户，如果它们是：
 
 * 使用 `@Projection` 注解标记，并且位于域类型的相同包（或子包）中，或者
-* 通过 `RepositoryRestConfiguration.getProjectionConfiguration().addProjection(…)` 手动注册。
+* 使用 `RepositoryRestConfiguration.getProjectionConfiguration().addProjection(…)` 手动注册。
 ====
 
 [[projections-excerpts.projections.hidden-data]]
 === 引入隐藏数据
 
-到目前为止，您已经了解了如何使用投影来减少呈现给用户的信息。投影也可以引入通常看不见的数据。例如，Spring Data REST将忽略使用 `@JsonIgnore` 注解标记的字段或getter。查看以下域对象：
+到目前为止，我们已经介绍了如何使用投影来减少呈现给用户的信息。投影也可以引入通常看不见的数据。例如，Spring Data REST忽略使用 `@JsonIgnore` 注解标记的字段或getter。考虑以下域对象：
 
+====
 [source,java]
 ----
 @Entity
@@ -210,14 +228,16 @@ public class User {
 ----
 
 <1> Jackson的 `@JsonIgnore` 用于阻止 `password` 字段被序列化为JSON。
+====
 
-此 `User` 类可用于存储用户信息以及与Spring Security的集成。如果您创建 `UserRepository`，则通常会导出 `password` 字段。这很不好！
-在这个例子中，我们通过在 `password` 字段上应用Jackson的 `@JsonIgnore` 来防止这种情况发生。
+前面示例中的 `User` 类可用于存储用户信息以及与Spring Security的集成。如果您创建 `UserRepository`，则通常会导出 `password` 字段，这不好。
+在前面示例中，我们通过在 `password` 字段上应用Jackson的 `@JsonIgnore` 来防止这种情况发生。
 
 NOTE: 如果 `@JsonIgnore` 在该字段的相应getter函数上，Jackson也不会将该字段序列化为JSON。
 
-然而，投影引入了仍然提供该字段的能力。可以创建这样的投影：
+然而，投影引入了仍然提供该字段的能力。可以创建以下投影：
 
+====
 [source,java]
 ----
 @Projection(name = "passwords", types = { User.class })
@@ -226,13 +246,15 @@ interface PasswordProjection {
   String getPassword();
 }
 ----
+====
 
-如果创建并使用这样的投影，它将回避放置在 `User.password` 上的 `@JsonIgnore` 指令。
+如果创建并使用这样的投影，它回避放置在 `User.password` 上的 `@JsonIgnore` 指令。
 
-IMPORTANT: 这个例子可能看起来有点人为，但是对于更丰富的域模型和许多投影，有可能意外泄露这些细节。由于Spring Data REST无法识别此类数据的敏感性，因此开发人员必须避免此类情况。
+IMPORTANT: 这个例子可能看起来有点人为，但是对于更丰富的域模型和许多投影，有可能意外泄露这些细节。由于Spring Data REST无法识别此类数据的敏感性，因此您必须避免此类情况。
 
 投影还可以生成虚拟数据。想象一下，您有以下实体定义：
 
+====
 [source,java]
 ----
 @Entity
@@ -245,9 +267,11 @@ public class Person {
   ...
 }
 ----
+====
 
-您可以创建一个将这两个数据字段组合在一起的投影，如下所示：
+您可以创建一个将前面示例中的两个数据字段组合在一起的投影，如下所示：
 
+====
 [source,java]
 ----
 @Projection(name = "virtual", types = { Person.class })
@@ -260,32 +284,36 @@ public interface VirtualProjection {
 ----
 
 <1> Spring的 `@Value` 注解允许您插入一个Spel表达式，该表达式接受目标对象，并将其 `firstName` 和 `lastName` 属性拼接在一起以呈现只读的 `fullName`。
+====
 
 [[projections-excerpts.excerpts]]
 == 摘录
 
 摘录是自动应用于资源集合的投影。例如，您可以按如下方式更改 `PersonRepository`：
 
+====
 [source,java]
 ----
 @RepositoryRestResource(excerptProjection = NoAddresses.class)
 interface PersonRepository extends CrudRepository<Person, Long> {}
 ----
+====
 
-在将 `Person` 资源嵌入到集合或相关资源中时，这会指示Spring Data REST使用 `NoAddresses` 投影。
+在将 `Person` 资源嵌入到集合或相关资源中时，前面示例会指示Spring Data REST使用 `NoAddresses` 投影。
 
-NOTE: 摘录投影 *不* 自动应用于 _单个资源_。它们必须被有意地应用。摘录投影旨在提供集合数据的默认预览，但不是在获取单个资源时。
+NOTE: 摘录投影不自动应用于单个资源。它们必须被有意地应用。摘录投影旨在提供集合数据的默认预览，但不是在获取单个资源时。
 请参阅 http://stackoverflow.com/questions/30220333/why-is-an-excerpt-projection-not-applied-automatically-for-a-spring-data-rest-it[摘录投影为什么不会自动应用于Spring Data REST项目资源？]获取该主题的讨论。
 
-除了更改默认呈现之外，摘录还有其他呈现选项，如下所示。
+除了更改默认呈现之外，摘录还有其他呈现选项，如下节所示。
 
 [[projections-excerpts.excerpting-commonly-accessed-data]]
-== 摘录常用访问数据
+=== 摘录常用访问数据
 
 REST服务的常见情况是在编写域对象时出现的。例如，`Person` 存储在一个表中，它们相关的 `Address` 存储在另一个表中。
-默认情况下，Spring Data REST将提供person的 `address` 作为客户端必须导航的URI。
-但是，如果消费者总是获取这些额外的数据是很常见的，那么摘录投影可以继续进行并内联这些额外的数据，从而为您节省额外的 `GET`。为此，让我们定义另一个摘录投影：
+默认情况下，Spring Data REST提供person的 `address` 作为客户端必须导航的URI。
+但是，如果消费者获取这些额外的数据是很常见的，那么摘录投影可以将这些额外的数据内联，从而为您节省额外的 `GET`。为此，您可以定义另一个摘录投影，如下所示：
 
+====
 [source,java]
 ----
 @Projection(name = "inlineAddress", types = { Person.class }) <1>
@@ -300,18 +328,22 @@ interface InlineAddress {
 ----
 
 <1> 此投影已命名为 `inlineAddress`。
-<2> 此投影添加返回 `Address` 字段的 `getAddress`。在投影中使用时，会导致信息内联。
+<2> 此投影添加返回 `Address` 字段的 `getAddress`。在投影中使用时，会导致信息以内联方式包含在内。
+====
 
-我们可以将它插入 `PersonRepository` 定义，如下所示：
+可以将它插入 `PersonRepository` 定义，如下所示：
 
+====
 [source,java]
 ----
 @RepositoryRestResource(excerptProjection = InlineAddress.class)
 interface PersonRepository extends CrudRepository<Person, Long> {}
 ----
+====
 
-这将导致HAL文档显示如下：
+这样做会导致HAL文档显示如下：
 
+====
 [source,javascript]
 ----
 {
@@ -333,9 +365,10 @@ interface PersonRepository extends CrudRepository<Person, Long> {}
 }
 ----
 
-这看起来应该是您目前所见的混合物。
-
-<1> `address` 数据直接内联，因此您无需导航即可获取它。
+<1> `address` 数据直接包含在内，因此您无需导航即可获取它。
 <2> 仍然提供 `Address` 资源的链接，使其仍然可以导航到自己的资源。
+====
 
-WARNING: 为存储库配置 `@RepositoryRestResource(excerptProjection=...)` 会改变默认行为。如果您已经发布，则可能会对您的服务消费者引起更改。请谨慎使用。
+请注意，前面的示例混合了本章前面所示的示例。您可能希望通过它们回读以跟进最终示例的进展。
+
+WARNING: 为存储库配置 `@RepositoryRestResource(excerptProjection=...)` 会改变默认行为。如果您已经发布，则可能会对服务的使用者造成重大更改。

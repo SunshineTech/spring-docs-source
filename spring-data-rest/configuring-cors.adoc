@@ -8,16 +8,19 @@
 
 == 存储库接口CORS配置
 
-您可以将 `@CrossOrigin` 注解添加到存储库接口，以便为整个存储库启用CORS。默认情况下，`@CrossOrigin` 允许所有的源和HTTP方法：
+您可以将 `@CrossOrigin` 注解添加到存储库接口，以便为整个存储库启用CORS。默认情况下，`@CrossOrigin` 允许所有的源和HTTP方法。下例显示一个跨源存储库接口定义：
 
+====
 [source, java]
 ----
 @CrossOrigin
 interface PersonRepository extends CrudRepository<Person, Long> {}
 ----
+====
 
-在上例中，为整个 `PersonRepository` 启用CORS支持。`@CrossOrigin` 提供配置CORS支持的属性。
+在前面示例中，为整个 `PersonRepository` 启用CORS支持。`@CrossOrigin` 提供配置CORS支持的属性，如下例所示：
 
+====
 [source, java]
 ----
 @CrossOrigin(origins = "http://domain2.com",
@@ -25,13 +28,15 @@ interface PersonRepository extends CrudRepository<Person, Long> {}
   maxAge = 3600)
 interface PersonRepository extends CrudRepository<Person, Long> {}
 ----
+====
 
-此示例为整个 `PersonRepository` 启用CORS支持，提供一个源，仅限 `GET`、`POST` 和 `DELETE` 方法，最大使用期限为3600秒。
+前面的示例通过提供一个源为整个 `PersonRepository` 启用CORS支持，仅限 `GET`、`POST` 和 `DELETE` 方法，最大使用期限为3600秒。
 
 == 存储库REST控制器方法的CORS配置
 
-Spring Data REST完全支持在自定义REST控制器上共享存储库基本路径的 http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/web.html#controller-method-cors-configuration[Spring Web MVC的控制器方法配置]。
+Spring Data REST完全支持共享存储库基本路径的自定义REST控制器上的 http://docs.spring.io/spring/docs/{springVersion}/spring-framework-reference/web.html#controller-method-cors-configuration[Spring Web MVC的控制器方法配置]，如下例所示：
 
+====
 [source, java]
 ----
 @RepositoryRestController
@@ -44,6 +49,7 @@ public class PersonController {
   }
 }
 ----
+====
 
 NOTE: 使用 `@RepositoryRestController` 注解的控制器从其关联的存储库继承 `@CrossOrigin` 配置。
 
@@ -54,6 +60,9 @@ NOTE: 使用 `@RepositoryRestController` 注解的控制器从其关联的存储
 
 NOTE: 现有的Spring Web MVC CORS配置不应用于Spring Data REST。
 
+下例设置允许的源，添加PUT和DELETE HTTP方法，添加和公开一些头，并设置一小时的最大使用期限：
+
+====
 [source, java]
 ----
 @Component
@@ -71,4 +80,4 @@ public class SpringDataRestCustomization extends RepositoryRestConfigurerAdapter
   }
 }
 ----
-
+====

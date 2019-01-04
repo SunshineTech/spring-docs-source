@@ -5,14 +5,15 @@
 
 == 自定义项目资源URI
 
-默认情况下，项目资源的URI由用于集合资源的路径段和附加的数据库标识符组成。这允许我们使用存储库的 `findOne(…)` 方法来查找实体实例。
+默认情况下，项目资源的URI由用于集合资源的路径段和附加的数据库标识符组成。它让您使用存储库的 `findOne(…)` 方法来查找实体实例。
 从Spring Data REST 2.5开始，可以使用 `RepositoryRestConfiguration`（Java 8首选）上的配置API或在应用程序中将 `EntityLookup` 的实现注册为Spring bean来自定义。
-Spring Data REST将根据它们的实现选择那些并调整URI生成。
+Spring Data REST根据它们的实现选择那些并调整URI生成。
 
-假设 `User` 具有唯一标识它的 `username` 属性。此外，假设我们在相应存储库上有一个 `Optional<User> findByUsername(String username)` 方法。
+假设 `User` 具有唯一标识它的 `username` 属性。进一步假设我们在相应的存储库上有一个 `Optional<User> findByUsername(String username)` 方法。
 
-在Java 8上，我们可以简单地将映射方法注册为方法引用，以弱化URI创建，如下所示：
+在Java 8上，我们可以将映射方法注册为方法引用来调整URI创建，如下所示：
 
+====
 [source, java]
 ----
 @Component
@@ -26,11 +27,13 @@ public class SpringDataRestCustomization extends RepositoryRestConfigurerAdapter
   }
 }
 ----
+====
 
-`forRepository(…)` 将存储库类型作为第一个参数，将存储库域类型映射到某个目标类型的方法引用，以及使用作为第一个参数提到的存储库映射该值的另一个方法引用。
+`forRepository(…)` 将存储库类型作为第一个参数，将存储库域类型映射到某个目标类型的方法引用作为第二个参数，以及通过使用作为第一个参数提到的存储库来映射该值的另一个方法引用。
 
-如果您没有运行Java 8或更高版本，则可以使用需要使用一些非常详细的匿名内部类的方法。这就是为什么在较旧的Java版本上，您可能更喜欢如下实现 `UserEntityLookup`：
+如果您没有运行Java 8或更高版本，则可以使用该方法，但这需要一些非常详细的匿名内部类。在较旧的Java版本中，您可能更喜欢实现类似于以下的 `UserEntityLookup`：
 
+====
 [source, java]
 ----
 @Component
@@ -53,8 +56,52 @@ public class UserEntityLookup extends EntityLookupSupport<User> {
     }
 }
 ----
+====
 
-NOTE: `getResourceIdentifier(…)` 如何返回URI创建使用的username。要通过从该方法返回的值加载实体实例，我们现在使用 `UserRepository` 提供的查询方法实现 `lookupEntity(…)`。
+注意 `getResourceIdentifier(…)` 如何返回URI创建使用的 `username`。要通过从该方法返回的值加载实体实例，我们现在通过使用 `UserRepository` 上提供的查询方法实现 `lookupEntity(…)`。
+
+[[customizing-sdr.repository-exposure]]
+== 自定义存储库公开
+
+默认情况下，所有公共Spring Data存储库都用于公开如<<repository-resources>>中所述的HTTP资源。包保护的存储库接口从此列表中排除，因为您表示其功能仅在内部对包可见。
+这可以通过在 `RepositoryRestConfiguration` 上显式设置 `RepositoryDetectionStrategy`（通常通过枚举 `RepositoryDetectionStrategies`）来定制。可以配置以下值：
+
+- `ALL` -- 公开所有Spring Data存储库，无论其Java可见性或注解配置如何。
+- `DEFAULT` -- 公开公共Spring Data存储库或使用 `@RepositoryRestResource` 明确注解并且其 `exported` 属性未设置为 `false` 的存储库。
+- `VISIBILITY` -- 只公开公共Spring Data存储库，无论注解配置如何。
+- `ANNOTATED` -- 只公开使用 `@RepositoryRestResource` 明确注解并且其 `exported` 属性未设置为 `false` 的存储库。
+
+如果需要应用自定义规则，只需手动实现 `RepositoryDetectionStrategy`。
+
+[[customizing-sdr.http-methods]]
+== 自定义支持的HTTP方法
+
+[[customizing-sdr.http-methods.default-exposure]]
+=== 自定义默认公开
+
+默认情况下，Spring Data REST根据存储库公开的CRUD方法公开如<<repository-resources>>中所述的HTTP资源和方法。
+存储库不需要扩展 `CrudRepository`，但也可以选择性地声明上述部分中描述的方法，并且资源公开将随之而来。
+例如，如果存储库没有公开 `delete(…)` 方法，则项目资源将不支持HTTP `DELETE`。
+
+如果您需要声明一个供内部使用但不希望它触发HTTP方法公开的方法，则可以使用 `@RestResource(exported = false)` 注解该存储库方法。
+像这样对哪些方法注解以移除对哪个HTTP方法的支持，在<<repository-resources>>中有介绍。
+
+有时管理方法级别的公开还不够精细。例如，`save(…)` 方法用于在集合资源上支持 `POST`，以及在项目资源上支持 `PUT` 和 `PATCH`。
+要有选择地定义应该公开哪些HTTP方法，可以使用 `RepositoryRestConfiguration.getExposureConfiguration()`。
+
+该类公开了一个基于Lambda的API，以定义全局和基于类型的规则：
+
+====
+[source, java]
+----
+ExposureConfiguration config = repositoryRestConfiguration.getExposureConfiguration();
+
+config.forDomainType(User.class).disablePutForCreation(); <1>
+config.withItemExposure((metadata, httpMethods) -> httpMethods.disable(HttpMethod.PATCH)); <2>
+----
+<1> 禁用对HTTP `PUT` 的支持以直接创建项目资源。
+<2> 禁用对所有项目资源的HTTP `PATCH` 支持。
+====
 
 
 include::configuring-the-rest-url-path.adoc[leveloffset=+1]

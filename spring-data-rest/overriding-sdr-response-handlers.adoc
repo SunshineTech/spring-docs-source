@@ -1,8 +1,10 @@
 [[customizing-sdr.overriding-sdr-response-handlers]]
 = 重写Spring Data REST响应处理器
 
-有时您可能希望为特定资源编写自定义处理器。要利用Spring Data REST的设置，消息转换器，异常处理等，请使用 `@RepositoryRestController` 注解而不是标准的Spring MVC `@Controller` 或 `@RestController`：
+有时，您可能希望为特定资源编写自定义处理器。要利用Spring Data REST的设置，消息转换器，异常处理等，请使用 `@RepositoryRestController` 注解而不是标准的Spring MVC `@Controller` 或 `@RestController`。
+用 `@RepositoryRestController` 注解的控制器是从 `RepositoryRestConfiguration.setBasePath` 中定义的API基本路径提供的，该路径被所有其他RESTful端点使用（例如，`/api`）。下例显示了如何使用 `@RepositoryRestController` 注解：
 
+====
 [source,java]
 ----
 @RepositoryRestController
@@ -35,20 +37,19 @@ public class ScannerController {
 }
 ----
 
-此控制器将从所有其他RESTful端点使用的 `RepositoryRestConfiguration.setBasePath` 中定义的相同API基本路径（例如 */api*）提供服务。它还具有以下特征：
-
 <1> 此例使用构造函数注入。
 <2> 此处理器为Spring Data finder方法插入自定义处理器。
-<3> 此处理器使用底层存储库来获取数据，但在将最终数据集返回给客户端之前将执行某种形式的后处理。
+<3> 此处理器使用底层存储库来获取数据，但在将最终数据集返回给客户端之前执行某种形式的后处理。
 <4> 结果需要包装在Spring HATEOAS `Resources` 对象中以返回集合，但只是单个项目的 `Resource`。
-<5> 将链接作为“self”链接添加到这个确切的方法。
+<5> 将链接作为 `self` 链接添加到这个确切的方法。
 <6> 使用Spring MVC的 `ResponseEntity` 包装器返回集合，确保正确包装集合并以正确的accept类型呈现。
+====
 
-`Resources` 用于集合，而 `Resource` 用于单项。这些类型可以组合使用。如果您知道集合中每项的链接，请使用 `Resources<Resource<String>>`（或任何核心域类型）。
-这使您可以为每项以及整个集合组合链接。
+`Resources` 用于集合，而 `Resource` 用于单项。这些类型可以组合使用。如果您知道集合中每项的链接，请使用 `Resources<Resource<String>>`（或任何不是 `String` 的核心域类型）。
+这样做可以为每项以及整个集合组合链接。
 
-IMPORTANT: 在此例中，组合路径将是 `RepositoryRestConfiguration.getBasePath()` + `/scanners/search/listProducers`。
+IMPORTANT: 在此例中，组合路径是 `RepositoryRestConfiguration.getBasePath()` + `/scanners/search/listProducers`。
 
-如果您对特定于实体的操作不感兴趣，但仍希望在 `basePath` 下构建自定义操作，例如Spring MVC视图，资源等，请使用 `@BasePathAwareController`。
+如果您对特定于实体的操作不感兴趣，但仍希望在 `basePath` 下构建自定义操作，例如Spring MVC视图，资源和其它的，请使用 `@BasePathAwareController`。
 
-WARNING: 如果您使用 `@Controller` 或 `@RestController`，那么该代码将完全超出Spring Data REST的范围。这扩展到请求处理，消息转换器，异常处理等。
+WARNING: 如果您使用 `@Controller` 或 `@RestController`，那么该代码完全超出Spring Data REST的范围。这扩展到请求处理，消息转换器，异常处理等。

@@ -8,15 +8,16 @@
 
 有时您需要在自己的自定义构建的Spring MVC控制器中添加导出资源的链接。有三种可用的基本链接级别：
 
-. 手动装配链接
-. 使用Spring HATEOAS的 http://docs.spring.io/spring-hateoas/docs/current/reference/html/#fundamentals.obtaining-links.builder[LinkBuilder]与 `linkTo()`、`slash()` 等。
-. 使用Spring Data REST的 http://docs.spring.io/spring-data/rest/docs/current/api/org/springframework/data/rest/webmvc/support/RepositoryEntityLinks.html[RepositoryEntityLinks]实现。
+* 手动装配链接。
+* 使用Spring HATEOAS的 http://docs.spring.io/spring-hateoas/docs/current/reference/html/#fundamentals.obtaining-links.builder[LinkBuilder]与 `linkTo()`、`slash()` 等。
+* 使用Spring Data REST的 http://docs.spring.io/spring-data/rest/docs/current/api/org/springframework/data/rest/webmvc/support/RepositoryEntityLinks.html[`RepositoryEntityLinks`]实现。
 
 第一个建议是可怕的，应该不惜一切代价避免。它会使您的代码变得脆弱和高风险。第二个在创建链接到其他手写的Spring MVC控制器时很方便。
-最后一个，您将在稍后看到，它有助于查找由Spring Data REST导出的资源链接。
+我们在本节的其余部分探讨的最后一个，有助于查找由Spring Data REST导出的资源链接。
 
-假设您已将代码配置为使用Spring的自动装配，
+考虑以下使用Spring自动装配的类：
 
+====
 [source,java]
 ----
 public class MyWebApp {
@@ -29,15 +30,16 @@ public class MyWebApp {
 	}
 }
 ----
+====
 
-...然后，您可以使用以下操作：
+使用前面示例中的类，您可以使用以下操作：
 
 .链接到导出资源的方法
 |===
 |方法 | 描述
 
 |`entityLinks.linkToCollectionResource(Person.class)`
-|提供指向该类型的集合资源的链接。
+|提供指向指定类型的集合资源的链接（在本例中为 `Person`）。
 
 |`entityLinks.linkToSingleResource(Person.class, 1)`
 |提供指向单个资源的链接。
@@ -49,9 +51,9 @@ public class MyWebApp {
 |提供相应存储库公开的所有finder方法的链接列表。
 
 |`entityLinks.linkToSearchResource(Person.class, "findByLastName")`
-|通过rel提供finder链接，即finder的名称。
+|通过 `rel` 提供finder链接（即finder的名称）。
 
 |===
 
-NOTE: 所有基于搜索的链接都支持用于分页和排序的额外参数。请查看 http://docs.spring.io/spring-data/rest/docs/current/api/org/springframework/data/rest/webmvc/support/RepositoryEntityLinks.html[RepositoryEntityLinks]了解具体细节。
+NOTE: 所有基于搜索的链接都支持用于分页和排序的额外参数。有关详细信息，请参阅 http://docs.spring.io/spring-data/rest/docs/current/api/org/springframework/data/rest/webmvc/support/RepositoryEntityLinks.html[`RepositoryEntityLinks`]。
 还有 `linkFor(Class<?> type)`，但它返回一个Spring HATEOAS `LinkBuilder`，它返回到较低级别的API。请首先尝试使用其他的。

@@ -2,12 +2,14 @@
 = 带头的条件操作
 :spring-data-rest-root: ../../../..
 
-本节介绍Spring Data REST如何使用标准HTTP头来增强性能，条件化操作，并轻松地为更复杂的前端做出贡献。
+本节介绍Spring Data REST如何使用标准HTTP头来增强性能，条件化操作，并为更复杂的前端做出贡献。
 
 [[conditional.etag]]
-== ETag，If-Match和If-None-Match头
+== `ETag`，`If-Match` 和 `If-None-Match` 头
 
-http://tools.ietf.org/html/rfc7232#section-2.3[ETag头]提供了标记资源的方法。这可以防止客户端相互覆盖，同时还可以减少不必要的调用。
+http://tools.ietf.org/html/rfc7232#section-2.3[`ETag` 头]提供了标记资源的方法。这可以防止客户端相互覆盖，同时还可以减少不必要的调用。
+
+考虑下例：
 
 .带版本号的POJO
 ====
@@ -18,36 +20,41 @@ include::{spring-data-rest-root}/spring-data-rest-webmvc/src/test/java/org/sprin
 
 <1> `@Version` 注解（如果您正在使用Spring Data JPA，则为JPA；对于所有其他模块，则为Spring Data `org.springframework.data.annotation.Version`）将此字段标记为版本标记。
 ====
-此POJO在由Spring Data REST作为REST资源提供时，将具有带有version字段值的 `ETag` 头。
+
+前面示例中的POJO在由Spring Data REST作为REST资源提供时，具有带有version字段值的 `ETag` 头。
 
 如果我们提供如下所示的 `If-Match` 头，我们可以有条件地 `PUT`、`PATCH`或 `DELETE` 该资源：
 
+====
 ----
 curl -v -X PATCH -H 'If-Match: <value of previous ETag>' ...
 ----
+====
 
-仅当资源的当前ETag状态与此 `If-Match` 头匹配时，才会执行该操作。这可以防止客户端互相踩踏。两个不同的客户端可以获取资源并具有相同的ETag。
-如果一个客户端更新资源，它将在响应中获得一个新的ETag。但第一个客户端仍然有旧头。如果该客户端尝试使用 `If-Match` 头进行更新，则更新将失败，因为它们不再匹配。
-相反，该客户端将收到发送回的HTTP `412 Precondition Failed` 消息。客户端可以但是随后追赶是必要的。
+仅当资源的当前 `ETag` 状态与 `If-Match` 头匹配时才执行该操作。这种安全措施可以防止客户端互相踩踏。两个不同的客户端可以获取资源并具有相同的 `ETag`。
+如果一个客户端更新资源，它会在响应中获得一个新 `ETag`。 但第一个客户端仍然有旧头。如果该客户端尝试使用 `If-Match` 头进行更新，则更新将失败，因为它们不再匹配。
+相反，该客户端收到发回的HTTP `412 Precondition Failed` 消息。客户端可以但是随后追赶是必要的。
 
 WARNING: 术语“版本”可以在不同的数据存储中使用不同的语义，甚至可以在应用程序中使用不同的语义。
-Spring Data REST有效地委托数据存储的元模型来识别字段是否已版本化，如果是，则仅在ETag匹配时允许列出的更新。
+Spring Data REST有效地委托数据存储的元模型来识别字段是否已版本化，如果是，则仅在 `ETag` 元素匹配时允许列出的更新。
 
-http://tools.ietf.org/html/rfc7232#section-3.2[If-None-Match头]提供了另一种选择。不是条件更新，`If-None-Match` 允许条件查询。
+http://tools.ietf.org/html/rfc7232#section-3.2[[`If-None-Match` 头]提供了另一种选择。不是条件更新，`If-None-Match` 允许条件查询。考虑下例：
 
+====
 ----
 curl -v -H 'If-None-Match: <value of previous etag>' ...
 ----
+====
 
-此命令（默认）执行 `GET`。Spring Data REST将在执行GET时检查 `If-None-Match` 头。如果头匹配ETag，则将得出没有更改的结论，不是发送资源的副本，而是发回HTTP `304 Not Modified` 状态码。
-在语义上，它意味着“如果此提供的头值与服务器端版本不匹配，则向我发送整个资源，否则，不要向我发送任何内容。”
+前面命令（默认）执行 `GET`。Spring Data REST将在执行GET时检查 `If-None-Match` 头。如果头匹配ETag，则将得出没有更改的结论，不是发送资源的副本，而是发回HTTP `304 Not Modified` 状态码。
+在语义上，它意味着“如果此提供的头值与服务器端版本不匹配，则向我发送整个资源。否则，不要向我发送任何内容。”
 
-NOTE: 此POJO来自基于ETag的单元测试，因此它没有应用程序代码中预期的 `@Entity`（JPA）或 `@Document`（MongoDB）注解。它只关注具有 `@Version` 的字段如何产生ETag头。
+NOTE: 此POJO来自基于 `ETag` 的单元测试，因此它没有应用程序代码中预期的 `@Entity`（JPA）或 `@Document`（MongoDB）注解。它只关注具有 `@Version` 的字段如何产生 `ETag` 头。
 
 [[conditional.if-modified-since]]
-== If-Modified-Since头
+== `If-Modified-Since` 头
 
-http://tools.ietf.org/html/rfc7232#section-3.3[If-Modified-Since头]提供了一种检查自上次请求后资源是否已更新的方法，避免重新发送相同的数据。
+http://tools.ietf.org/html/rfc7232#section-3.3[`If-Modified-Since` 头]提供了一种检查自上次请求后资源是否已更新的方法，让应用程序避免重新发送相同的数据。考虑下例：
 
 .在域类型中捕获的最后修改日期
 ====
@@ -55,23 +62,26 @@ http://tools.ietf.org/html/rfc7232#section-3.3[If-Modified-Since头]提供了一
 ----
 include::{spring-data-rest-root}/spring-data-rest-tests/spring-data-rest-tests-mongodb/src/main/java/org/springframework/data/rest/tests/mongodb/Receipt.java[tag=code]
 ----
+<1> Spring Data Commons的 `@LastModifiedDate` 注解允许以多种格式（JodaTime的 `DateTime`，遗留Java `Date` 和 `Calendar`，JDK8日期/时间类型，以及 `long`/`Long`）捕获此信息。
 ====
 
-<1> Spring Data Commons的 `@LastModifiedDate` 注解允许以多种格式（JodaTime的 `DateTime`，遗留Java `Date` 和 `Calendar`，JDK8日期/时间类型，以及 `long`/`Long`）捕获此信息。
+使用前面示例中的日期字段，Spring Data REST返回类似于以下的 `Last-Modified` 头：
 
-使用此字段，Spring Data REST将返回 `Last-Modified` 头，如下所示：
-
+====
 ----
 Last-Modified: Wed, 24 Jun 2015 20:28:15 GMT
 ----
+====
 
-此值可以被捕获并用于后续查询，以避免在未更新的情况下两次获取相同的数据。
+此值可以被捕获并用于后续查询，以避免在未更新的情况下两次获取相同的数据，如下例所示：
 
+====
 ----
 curl -H "If-Modified-Since: Wed, 24 Jun 2015 20:28:15 GMT" ...
 ----
+====
 
-使用这个简单的命令，您要求仅获取在从那时起更改的资源。如果有，您将获得修订的 `Last-Modified` 头以更新客户端。如果没有，您将收到HTTP `304 Not Modified` 状态码。
+使用前面的命令，您要求仅获取在从指定时间起更改的资源。如果有，您将获得使用其更新客户端的修订 `Last-Modified` 头。如果没有，您将收到HTTP `304 Not Modified` 状态码。
 
 此头完美地格式化发回，以用于将来查询。
 
@@ -80,16 +90,18 @@ WARNING: 不要将头值与不同的查询混合和匹配。结果可能是灾�
 [[headers.better-client-architecture]]
 == 架构更高效的前端
 
-ETag与 `If-Match` 和 `If-None-Match` 头相结合，使您能够构建对消费者数据计划和移动电池寿命更友好的前端。
+`ETag` 元素与 `If-Match` 和 `If-None-Match` 头相结合，让您构建对消费者数据计划和移动电池寿命更友好的前端。为此：
 
-. 标识需要锁定并添加版本属性的实体。HTML5很好地支持data-*属性，因此将它存储在DOM中如 `data-etag` 属性中。
-. 标识将从跟踪最近更新中受益的实体。获取这些资源时，将 `Last-Modified` 存储在DOM中（可能是 `data-last-modified`）。
-. 在获取资源时，还要将self URI嵌入到DOM节点中（可能是 `data-uri` 或 `data-self`），这样就可以很容易地返回资源。
+. 标识需要锁定并添加版本属性的实体。
+
+HTML5很好地支持 `data-*` 属性，因此将版本存储在DOM中如 `data-etag` 属性中（例如 `data-etag` 属性）。
+. 标识将从跟踪最近更新中受益的实体。获取这些资源时，将 `Last-Modified` 值存储在DOM中（可能是 `data-last-modified`）。
+. 在获取资源时，还要将 `self` URI嵌入到DOM节点中（可能是 `data-uri` 或 `data-self`），以便容易地返回资源。
 . 调整 `PUT`/`PATCH`/`DELETE` 操作以使用 `If-Match` 并处理HTTP `412 Precondition Failed` 状态码。
-. 调整 `GET` 操作以使用 `If-None-Match`、`If-Modified-Since`，并处理HTTP `304 Not Modified` 状态码。
+. 调整 `GET` 操作以使用 `If-None-Match` 和 `If-Modified-Since`，并处理HTTP `304 Not Modified` 状态码。
 
-通过将 `ETags` 和 `Last-Modified` 值嵌入到您的DOM（或者可能是原生移动应用程序的其他地方）中，您然后可以通过不反复检索相同的内容来减少数据/电池的消耗。
+通过将 `ETag` 元素和 `Last-Modified` 值嵌入到您的DOM（或者可能是原生移动应用程序的其他地方）中，您然后可以通过不反复检索相同的内容来减少数据和电池电量的消耗。
 您还可以避免与其他客户端发生冲突，而是在需要协调差异时收到警报。
 
-因此，只需稍微调整一下前端和一些实体级别的编辑，后端将提供时间敏感的细节，您可以在构建客户友好的客户端时从中获利。
+以这种方式，只需稍微调整一下前端和一些实体级别的编辑，后端将提供时间敏感的细节，您可以在构建客户友好的客户端时从中获利。
 

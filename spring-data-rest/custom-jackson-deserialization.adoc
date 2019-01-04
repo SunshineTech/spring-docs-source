@@ -1,16 +1,17 @@
 [[customizing-sdr.custom-jackson-deserialization]]
-= 将自定义（反）序列化器添加到Jackson的ObjectMapper中
+= 将自定义序列化器和反序列化器添加到Jackson的 `ObjectMapper` 中
 
-有时，Spring Data REST的 `ObjectMapper` 行为可能无法正确处理您的域模型，该行为已经过专门配置，使用可以将域对象转换为链接并再次转换回的智能序列化程序。
-有很多方式可以构建数据，您可能会发现自己的域模型没有正确地转换为JSON。在这些情况下，尝试以通用方式支持复杂域模型有时也不实用。有时，根据复杂性，甚至不可能提供通用解决方案。
+有时，Spring Data REST的 `ObjectMapper` 行为（该行为已经过专门配置，使用可以将域对象转换为链接并再次转换回的智能序列化程序）可能无法正确处理您的域模型。
+您可以通过多种方式构建数据，您可能会发现自己的域模型无法正确转换为JSON。在这些情况下，以通用方式支持复杂域模型有时也是不实际的。有时，根据复杂性，甚至不可能提供通用解决方案。
 
-因此，为了适应最大比例的用例，Spring Data REST非常努力地尝试正确呈现对象图。它将尝试将非托管bean序列化为普通的POJO，并在必要时它将尝试创建托管bean的链接。
-但是，如果您的域模型不易于阅读或编写普通JSON，您可能想使用自己的自定义类型映射和（反）序列化器来配置Jackson的ObjectMapper。
+为了适应最大比例的用例，Spring Data REST尝试正确呈现对象图。它尝试将非托管bean序列化为普通POJO，并尝试在必要时创建托管bean的链接。
+但是，如果您的域模型不易于阅读或编写普通JSON，您可能需要使用自己的自定义类型映射和（反）序列化器配置Jackson的`ObjectMapper`。
 
 == 抽象类注册
 
 您可能需要挂钩的一个关键配置点是在域模型中使用抽象类（或接口）时。Jackson默认不会知道为接口创建什么实现。请考虑下例：
 
+====
 [source,java]
 ----
 @Entity
@@ -20,12 +21,14 @@ public class MyEntity {
   private List<MyInterface> interfaces;
 }
 ----
+====
 
-在默认配置中，Jackson在将新数据POST到导出器时不知道要实例化哪个类。这是您需要通过注解，或者更清楚地通过使用 http://wiki.fasterxml.com/JacksonFeatureModules[Module]注册类型映射告诉Jackson的内容。
+在默认配置中，Jackson在将新数据POST到导出器时不知道要实例化哪个类。您需要通过注解，或者更清楚地通过使用 http://wiki.fasterxml.com/JacksonFeatureModules[Module]注册类型映射告诉Jackson。
 
-在 `ApplicationContext` 范围内声明的任何 `Module` bean将由导出器选取并使用其 `ObjectMapper` 注册。
-要添加此特殊抽象类类型映射，请创建 `Module` bean，并在 `setupModule` 方法中添加适当的 `TypeResolver`：
+在 `ApplicationContext` 范围内声明的任何 `Module` bean由导出器选取并使用其 `ObjectMapper` 注册。
+要添加此特殊抽象类类型映射，您可以创建 `Module` bean，并在 `setupModule` 方法中添加适当的 `TypeResolver`，如下所示：
 
+====
 [source,java]
 ----
 public class MyCustomModule extends SimpleModule {
@@ -42,15 +45,17 @@ public class MyCustomModule extends SimpleModule {
   }
 }
 ----
+====
 
-一旦您可以访问 `Module` 中的 `SetupContext` 对象，就可以做各种很酷的事情来配置Jackon的JSON映射。您可以在Jackson的wiki上阅读有关 http://wiki.fasterxml.com/JacksonFeatureModules[Module 如何工作]的更多信息。
+一旦您可以访问 `Module` 中的 `SetupContext` 对象，就可以做各种很酷的事情来配置Jackon的JSON映射。您可以在Jackson的wiki上阅读有关 http://wiki.fasterxml.com/JacksonFeatureModules[Module如何工作]的更多信息。
 
 == 为域类型添加自定义序列化器
 
-如果您想以特殊方式（反）序列化域类型，可以使用Jackson的 `ObjectMapper` 注册自己的实现，Spring Data REST导出器将透明地正确处理这些域对象。
+如果您想以特殊方式序列化或反序列化域类型，可以使用Jackson的 `ObjectMapper` 注册自己的实现。然后，Spring Data REST导出器将透明地正确处理这些域对象。
 
-要从 `setupModule` 方法实现添加序列化器，请执行以下操作：
+要从 `setupModule` 方法实现添加序列化器，可以执行以下操作：
 
+====
 [source,java]
 ----
 public class MyCustomModule extends SimpleModule {
@@ -71,5 +76,6 @@ public class MyCustomModule extends SimpleModule {
   }
 }
 ----
+====
 
-现在，Spring Data REST将正确处理您的域对象，以防它们对于Spring Data REST试图涵盖的80％通用用例而言过于复杂。
+由于前面示例中显示的自定义模块，当您的域对象对于Spring Data Rest试图涵盖的80%通用用例过于复杂时，Spring Data Rest可以正确地处理它们。
