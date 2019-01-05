@@ -8,6 +8,7 @@ Oliver Gierke; Thomas Darimont; Christoph Strobl; Mark Paluch; Jay Bryant
 :toc: left
 :toclevels: 4
 :source-highlighter: prettify
+:numbered:
 :icons: font
 :linkcss:
 :stylesheet: spring.css
